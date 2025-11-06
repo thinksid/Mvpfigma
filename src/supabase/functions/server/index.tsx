@@ -12,8 +12,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xamd2emFlZGx3YXJteWpsc296Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjE4NjEwNiwiZXhwIjoyMDc3NzYyMTA2fQ.ws7NZh57vRt9l56guyeRMR0I1ZhwWPIl-lv89bFPfrI';
 
 // Stripe configuration
-const STRIPE_SECRET_KEY = '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';
-const STRIPE_PRICE_ID = 'price_1SQ8t71epFGDXBkyRlgR1DVI';
+const STRIPE_SECRET_KEY = 'sk_test_51SQ8RV0X2npEw2wvqvuYm2L8v8ZcKHqYvqMrPz5K0VfJj5gH3XqYL8tQq7VfQz7QQH8v8ZcKHqYvqMrPz5K0VfJj00xYvqMrPz'; // TEST KEY - Replace with your actual test secret key
+const STRIPE_PRICE_ID = 'price_1SQIpcGi1epFGDXBkypOPO9Tl'; // Updated to match DIYPreview.tsx
 
 // Enable logger
 app.use('*', logger(console.log));
@@ -125,9 +125,10 @@ app.post("/make-server-1da61fc8/diy/update-vendor", async (c) => {
 app.post("/make-server-1da61fc8/stripe/create-checkout-session", async (c) => {
   try {
     const body = await c.req.json();
-    const { generation_id } = body;
+    const { generation_id, success_url, cancel_url } = body;
 
     if (!generation_id) {
+      console.error('❌ Missing generation_id in request');
       return c.json({ error: "generation_id is required" }, 400);
     }
 
@@ -135,7 +136,18 @@ app.post("/make-server-1da61fc8/stripe/create-checkout-session", async (c) => {
       apiVersion: '2024-12-18.acacia',
     });
 
-    console.log('🛒 Creating Stripe Checkout Session for generation:', generation_id);
+    console.log('🛒 Creating Stripe Checkout Session...');
+    console.log('   - Generation ID:', generation_id);
+    console.log('   - Price ID:', STRIPE_PRICE_ID);
+    console.log('   - Success URL:', success_url);
+    console.log('   - Cancel URL:', cancel_url);
+
+    // Use provided URLs or fallback to defaults
+    const finalSuccessUrl = success_url || `${c.req.header('origin') || 'https://oqjgvzaedlwarmyjlsoz.supabase.co'}/diy-download?id=${generation_id}`;
+    const finalCancelUrl = cancel_url || `${c.req.header('origin') || 'https://oqjgvzaedlwarmyjlsoz.supabase.co'}/diy-preview?id=${generation_id}`;
+
+    console.log('   - Final Success URL:', finalSuccessUrl);
+    console.log('   - Final Cancel URL:', finalCancelUrl);
 
     // Create Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -146,21 +158,27 @@ app.post("/make-server-1da61fc8/stripe/create-checkout-session", async (c) => {
           quantity: 1,
         },
       ],
-      success_url: `${c.req.header('origin') || 'https://oqjgvzaedlwarmyjlsoz.supabase.co'}/diy-download?session_id={CHECKOUT_SESSION_ID}&generation_id=${generation_id}`,
-      cancel_url: `${c.req.header('origin') || 'https://oqjgvzaedlwarmyjlsoz.supabase.co'}/diy-preview?id=${generation_id}`,
+      success_url: finalSuccessUrl,
+      cancel_url: finalCancelUrl,
       metadata: {
         generation_id: generation_id,
       },
     });
 
-    console.log('✅ Checkout Session created:', session.id);
-    console.log('   - URL:', session.url);
+    console.log('✅ Checkout Session created successfully!');
+    console.log('   - Session ID:', session.id);
+    console.log('   - Checkout URL:', session.url);
+    console.log('   - Amount Total:', session.amount_total);
+    console.log('   - Currency:', session.currency);
     console.log('   - Metadata:', session.metadata);
 
     return c.json({ success: true, url: session.url, session_id: session.id });
   } catch (error) {
-    console.error("❌ Error creating Stripe Checkout Session:", error);
-    return c.json({ error: "Failed to create checkout session" }, 500);
+    console.error("❌ Error creating Stripe Checkout Session:");
+    console.error('   - Error type:', error.constructor.name);
+    console.error('   - Error message:', error.message);
+    console.error('   - Full error:', error);
+    return c.json({ error: `Failed to create checkout session: ${error.message}` }, 500);
   }
 });
 

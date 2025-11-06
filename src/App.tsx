@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MainLandingPage } from './components/main-landing-page';
 import { HomePage } from './components/home-page';
 import { LandingPage } from './components/landing-page';
@@ -14,13 +14,14 @@ import { DIYDownload } from './components/diy/DIYDownload';
 import { DIYProvider } from './contexts/DIYContext';
 import { Toaster } from './components/ui/sonner';
 import './styles/globals.css';
+import faviconImage from 'figma:asset/a340d3568f822aca402a0826caf01ad7806480ba.png';
 
 type Screen = 
   | 'home' 
   | 'thermometer'
   | 'thermometer-processing'
-  | 'preview' 
-  | 'report' 
+  | 'thermometer-preview'
+  | 'thermometer-report'
   | 'pricing'
   | 'diy'
   | 'diy-create'
@@ -40,60 +41,135 @@ interface ScanData {
 }
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
+  const [currentScreen, setCurrentScreen] = useState<Screen>('diy-download');
   const [scanData, setScanData] = useState<ScanData | null>(null);
   const [fullReportData, setFullReportData] = useState<any>(null);
   const [analyzingUrl, setAnalyzingUrl] = useState<string>('');
 
+  // Set favicon
+  useEffect(() => {
+    const setFavicon = () => {
+      // Remove existing favicons
+      const existingFavicons = document.querySelectorAll('link[rel*="icon"]');
+      existingFavicons.forEach(icon => icon.remove());
+
+      // Add new favicon
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.type = 'image/png';
+      link.href = faviconImage;
+      document.head.appendChild(link);
+
+      // Also set apple-touch-icon
+      const appleTouchIcon = document.createElement('link');
+      appleTouchIcon.rel = 'apple-touch-icon';
+      appleTouchIcon.href = faviconImage;
+      document.head.appendChild(appleTouchIcon);
+    };
+
+    setFavicon();
+  }, []);
+
+  // Initialize screen from URL on mount
+  useEffect(() => {
+    const path = window.location.pathname;
+    const screen = getScreenFromPath(path);
+    setCurrentScreen(screen);
+  }, []);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      const screen = getScreenFromPath(path);
+      setCurrentScreen(screen);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Helper function to map URL paths to screens
+  const getScreenFromPath = (path: string): Screen => {
+    if (path === '/' || path === '/home') return 'home';
+    if (path === '/thermometer') return 'thermometer';
+    if (path === '/thermometer-processing') return 'thermometer-processing';
+    if (path === '/thermometer/preview') return 'thermometer-preview';
+    if (path === '/thermometer/report') return 'thermometer-report';
+    if (path === '/pricing') return 'pricing';
+    if (path === '/diy') return 'diy';
+    if (path === '/diy-create') return 'diy-create';
+    if (path === '/diy-processing') return 'diy-processing';
+    if (path === '/diy-preview') return 'diy-preview';
+    if (path === '/diy-download') return 'diy-download';
+    return 'home'; // default fallback
+  };
+
+  // Helper function to navigate and update URL
+  const navigateTo = (screen: Screen, path: string) => {
+    setCurrentScreen(screen);
+    window.history.pushState({}, '', path);
+    // Scroll to top when navigating
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleThermometerSubmit = (url: string) => {
     setAnalyzingUrl(url);
-    setCurrentScreen('thermometer-processing');
+    navigateTo('thermometer-processing', '/thermometer-processing');
   };
 
   const handleThermometerSuccess = (data: ScanData) => {
     setScanData(data);
-    setCurrentScreen('preview');
+    navigateTo('thermometer-preview', '/thermometer/preview');
   };
 
   const handleThermometerError = () => {
-    setCurrentScreen('thermometer');
+    navigateTo('thermometer', '/thermometer');
   };
 
   const handleUnlockSuccess = (data: any) => {
     setFullReportData(data);
-    setCurrentScreen('report');
+    navigateTo('thermometer-report', '/thermometer/report');
   };
 
   const handleNavigateHome = () => {
-    setCurrentScreen('home');
+    navigateTo('home', '/');
   };
 
   const handleNavigateToThermometer = () => {
-    setCurrentScreen('thermometer');
+    navigateTo('thermometer', '/thermometer');
   };
 
   const handleNavigateToDIY = () => {
-    setCurrentScreen('diy');
+    navigateTo('diy', '/diy');
   };
 
   const handleNavigateToDIYCreate = () => {
-    setCurrentScreen('diy-create');
+    navigateTo('diy-create', '/diy-create');
   };
 
   const handleNavigateToDIYProcessing = () => {
-    setCurrentScreen('diy-processing');
+    navigateTo('diy-processing', '/diy-processing');
   };
 
-  const handleNavigateToDIYPreview = () => {
-    setCurrentScreen('diy-preview');
+  const handleNavigateToDIYPreview = (generationId?: string) => {
+    if (generationId) {
+      navigateTo('diy-preview', `/diy-preview?id=${generationId}`);
+    } else {
+      navigateTo('diy-preview', '/diy-preview');
+    }
   };
 
-  const handleNavigateToDIYDownload = () => {
-    setCurrentScreen('diy-download');
+  const handleNavigateToDIYDownload = (generationId?: string) => {
+    if (generationId) {
+      navigateTo('diy-download', `/diy-download?id=${generationId}`);
+    } else {
+      navigateTo('diy-download', '/diy-download');
+    }
   };
 
   const handleNavigateToPricing = () => {
-    setCurrentScreen('pricing');
+    navigateTo('pricing', '/pricing');
   };
 
   return (
@@ -173,7 +249,7 @@ export default function App() {
           onError={handleThermometerError}
         />
       )}
-      {currentScreen === 'preview' && scanData && (
+      {currentScreen === 'thermometer-preview' && scanData && (
         <PreviewPage 
           data={scanData} 
           onUnlockSuccess={handleUnlockSuccess}
@@ -183,7 +259,7 @@ export default function App() {
           onNavigateToPricing={handleNavigateToPricing}
         />
       )}
-      {currentScreen === 'report' && fullReportData && (
+      {currentScreen === 'thermometer-report' && fullReportData && (
         <ReportPage 
           data={fullReportData}
           onNavigateToPricing={handleNavigateToPricing}

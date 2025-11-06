@@ -5,6 +5,8 @@ import { Button } from './ui/button';
 import { Navigation } from './Navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
+import { ThinkSidsCarousel } from './ThinkSidsCarousel';
+import { customerStories } from './diy/DIYLanding';
 
 interface MainLandingPageProps {
   onNavigateToThermometer: () => void;
@@ -350,25 +352,14 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
 
       {/* SOCIAL PROOF SECTION */}
       <section className="bg-white py-16 md:py-20 px-8">
-        <div className="max-w-[900px] mx-auto">
+        <div className="max-w-[1100px] mx-auto">
           {/* Heading */}
           <h2 className="text-[#1c1c60] text-center mb-12 text-3xl">
             Trusted by Growing Ag Vendors
           </h2>
 
-          {/* Testimonial Card */}
-          <div className="bg-[#F8F9FA] border-l-4 border-[#ebff82] rounded-xl p-10">
-            <p className="text-[#1c1c60] text-lg leading-relaxed italic mb-6">
-              "We knew our farmers were getting results, but we weren't showing it effectively. Think SID helped us turn vague testimonials into compelling evidence. Our inquiries jumped 40% in the first month."
-            </p>
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-[#E2E8F0] rounded-full" />
-              <div>
-                <p className="text-[#1c1c60] font-semibold">Sarah Martinez</p>
-                <p className="text-[#64748B] text-sm">Marketing Director, GreenSoil Biochar</p>
-              </div>
-            </div>
-          </div>
+          {/* ThinkSids Carousel */}
+          <ThinkSidsCarousel stories={customerStories} />
         </div>
       </section>
 

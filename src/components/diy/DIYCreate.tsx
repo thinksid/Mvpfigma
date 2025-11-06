@@ -11,6 +11,7 @@ import { Button } from '../ui/button';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../ui/accordion';
 import { Plus, Trash2, Upload, AlertCircle, User, Image, FileText, AlertTriangle, CheckCircle2, Lightbulb, TrendingUp, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
+import { getDIYSupabaseClient } from '../../utils/supabase/diy-client';
 
 interface DIYCreateProps {
   onNavigateHome: () => void;
@@ -28,7 +29,7 @@ const getSampleTestimonials = (): Testimonial[] => [
     location: 'Iowa',
     product_service: 'Precision Agriculture Platform',
     photo_url: '',
-    use_photo_placeholder: true,
+    use_photo_placeholder: false,
     context: 'Tom manages a 1,200-acre corn and soybean operation in central Iowa. He was struggling with variable yields across different field zones and wanted to optimize his fertilizer application to reduce costs.',
     problem: 'I was applying the same fertilizer rate across all 1,200 acres, even though soil quality varied dramatically. This meant over-fertilizing some areas and under-fertilizing others. I was wasting thousands on inputs and still seeing inconsistent yields.',
     solution: 'I adopted a precision ag platform that uses satellite imagery and soil data to create variable rate application maps. The system integrates with my existing equipment and provides field-specific recommendations.',
@@ -43,7 +44,7 @@ const getSampleTestimonials = (): Testimonial[] => [
     location: 'California Central Valley',
     product_service: 'Irrigation Management System',
     photo_url: '',
-    use_photo_placeholder: true,
+    use_photo_placeholder: false,
     context: 'Maria runs a 400-acre almond orchard in California. With increasing water restrictions and rising costs, she needed to optimize irrigation while maintaining tree health and nut quality.',
     problem: 'Water costs were eating into our profit margins, and drought restrictions limited our allocation. I was irrigating on a fixed schedule, which meant overwatering some areas and stressing trees in others. Our water bill was $85,000 annually.',
     solution: 'We installed soil moisture sensors throughout the orchard and implemented an automated irrigation system that adjusts watering based on real-time soil conditions and weather forecasts.',
@@ -58,7 +59,7 @@ const getSampleTestimonials = (): Testimonial[] => [
     location: 'Nebraska',
     product_service: 'Crop Monitoring & Scouting App',
     photo_url: '',
-    use_photo_placeholder: true,
+    use_photo_placeholder: false,
     context: 'Jake farms 2,500 acres of wheat and corn across multiple fields in Nebraska. He was struggling to keep track of pest pressure, disease, and crop health across such a large operation with limited scouting time.',
     problem: 'I could only physically scout about 30% of my acres each week. By the time I discovered pest issues or disease, it had already spread. I was making spray decisions with incomplete information and often treating entire fields unnecessarily.',
     solution: 'I started using a crop monitoring app with drone imagery integration. The app flags problem areas using AI, so I only scout where issues are detected. I can track every field from my phone.',
@@ -103,42 +104,86 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
     });
   };
 
+  // Clear field on focus if it contains placeholder text
+  const handleFieldFocus = (id: string, field: keyof Testimonial, e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const testimonial = testimonials.find(t => t.id === id);
+    if (!testimonial) return;
+    
+    const value = testimonial[field];
+    // Check if the value matches any of the sample data
+    const sampleTestimonials = getSampleTestimonials();
+    const sampleTestimonial = sampleTestimonials.find(t => t.id === id);
+    
+    if (sampleTestimonial && value === sampleTestimonial[field]) {
+      // Clear the field if it still has the placeholder/sample text
+      handleInputChange(id, field, '');
+    }
+  };
+
   const handlePhotoUpload = async (id: string, file: File) => {
     try {
+      console.log('Starting photo upload for testimonial:', id);
+      console.log('File details:', { name: file.name, size: file.size, type: file.type });
+      
       setUploadingPhotos(prev => ({ ...prev, [id]: true }));
       
-      // Create bucket if it doesn't exist
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets?.some(bucket => bucket.name === 'testimonial-photos');
+      const supabase = getDIYSupabaseClient();
+      const bucketName = 'carousel_pictures';
       
-      if (!bucketExists) {
-        await supabase.storage.createBucket('testimonial-photos', {
-          public: true,
-        });
-      }
-
       // Upload file
       const fileExt = file.name.split('.').pop();
       const fileName = `${id}-${Date.now()}.${fileExt}`;
+      
+      console.log('Uploading to bucket:', bucketName, 'as:', fileName);
+      
       const { data, error } = await supabase.storage
-        .from('testimonial-photos')
+        .from(bucketName)
         .upload(fileName, file);
+      
+      if (error) {
+        console.error('Upload error:', error);
+        // Check if it's an RLS policy error
+        if (error.message?.includes('row-level security') || error.message?.includes('policy')) {
+          throw new Error('Storage permissions not configured. Please disable RLS on the carousel_pictures bucket or add an INSERT policy that allows public uploads.');
+        }
+        throw error;
+      }
 
-      if (error) throw error;
+      console.log('Upload successful! Data:', data);
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('testimonial-photos')
+        .from(bucketName)
         .getPublicUrl(fileName);
 
-      handleInputChange(id, 'photo_url', publicUrl);
-      handleInputChange(id, 'use_photo_placeholder', false);
+      console.log('Public URL generated:', publicUrl);
+
+      // Update testimonial state directly
+      setTestimonials(prev =>
+        prev.map(t => t.id === id ? { 
+          ...t, 
+          photo_url: publicUrl,
+          use_photo_placeholder: false 
+        } : t)
+      );
+      
+      // Clear ALL photo-related errors for this testimonial
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[`${id}-photo`];
+        delete newErrors[`${id}-photo_url`];
+        console.log('Cleared photo errors for:', id);
+        return newErrors;
+      });
+      
+      console.log('Photo upload complete! URL saved to state.');
       toast.success('Photo uploaded successfully');
     } catch (error) {
       console.error('Error uploading photo:', error);
-      toast.error('Failed to upload photo. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload photo. Please try again.');
     } finally {
       setUploadingPhotos(prev => ({ ...prev, [id]: false }));
+      console.log('Upload process finished');
     }
   };
 
@@ -154,7 +199,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
       location: '',
       product_service: '',
       photo_url: '',
-      use_photo_placeholder: true,
+      use_photo_placeholder: false,
       context: '',
       problem: '',
       solution: '',
@@ -265,7 +310,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
         </div>
 
         {/* Testimonials Forms */}
-        <Accordion type="single" collapsible defaultValue={testimonials[0]?.id} className="space-y-4">
+        <Accordion type="single" collapsible defaultValue="1" className="space-y-4">
           {testimonials.map((testimonial, index) => (
             <AccordionItem
               key={testimonial.id}
@@ -327,6 +372,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                         placeholder="e.g., Sarah Johnson"
                         className={`bg-white ${errors[`${testimonial.id}-customer_name`] ? 'border-red-500' : ''}`}
                         data-error={!!errors[`${testimonial.id}-customer_name`]}
+                        onFocus={(e) => handleFieldFocus(testimonial.id, 'customer_name', e)}
                       />
                       {errors[`${testimonial.id}-customer_name`] && (
                         <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
@@ -345,6 +391,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                         placeholder="e.g., San Francisco, CA"
                         className={`bg-white ${errors[`${testimonial.id}-location`] ? 'border-red-500' : ''}`}
                         data-error={!!errors[`${testimonial.id}-location`]}
+                        onFocus={(e) => handleFieldFocus(testimonial.id, 'location', e)}
                       />
                       {errors[`${testimonial.id}-location`] && (
                         <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
@@ -363,6 +410,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                         placeholder="e.g., Analytics Platform"
                         className={`bg-white ${errors[`${testimonial.id}-product_service`] ? 'border-red-500' : ''}`}
                         data-error={!!errors[`${testimonial.id}-product_service`]}
+                        onFocus={(e) => handleFieldFocus(testimonial.id, 'product_service', e)}
                       />
                       {errors[`${testimonial.id}-product_service`] && (
                         <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
@@ -399,30 +447,30 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                           className="hidden"
                           id={`${testimonial.id}-photo`}
                         />
-                        <label htmlFor={`${testimonial.id}-photo`}>
+                        <div className="flex items-center gap-4">
                           <Button
                             type="button"
                             variant="outline"
-                            className="cursor-pointer"
                             onClick={() => document.getElementById(`${testimonial.id}-photo`)?.click()}
                             disabled={uploadingPhotos[testimonial.id]}
-                            asChild
                           >
-                            <span>
-                              <Upload className="w-4 h-4 mr-2" />
-                              {uploadingPhotos[testimonial.id] ? 'Uploading...' : testimonial.photo_url ? 'Change Photo' : 'Upload Photo'}
-                            </span>
+                            <Upload className="w-4 h-4 mr-2" />
+                            {uploadingPhotos[testimonial.id] ? 'Uploading...' : testimonial.photo_url ? 'Change Photo' : 'Upload Photo'}
                           </Button>
-                        </label>
-                        {testimonial.photo_url && (
-                          <div className="mt-4">
-                            <img
-                              src={testimonial.photo_url}
-                              alt="Customer"
-                              className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
-                            />
-                          </div>
-                        )}
+                          {testimonial.photo_url && (
+                            <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2">
+                              <img
+                                src={testimonial.photo_url}
+                                alt="Customer preview"
+                                className="w-12 h-12 rounded-full object-cover border-2 border-emerald-300"
+                              />
+                              <div className="flex items-center gap-2 text-emerald-700">
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span className="text-sm">Photo uploaded</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                     <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200">
@@ -481,6 +529,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                             rows={3}
                             className={`mt-2 bg-white ${errors[`${testimonial.id}-context`] ? 'border-red-500' : ''}`}
                             data-error={!!errors[`${testimonial.id}-context`]}
+                            onFocus={(e) => handleFieldFocus(testimonial.id, 'context', e)}
                           />
                           {errors[`${testimonial.id}-context`] && (
                             <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
@@ -516,6 +565,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                             rows={3}
                             className={`mt-2 bg-white ${errors[`${testimonial.id}-problem`] ? 'border-red-500' : ''}`}
                             data-error={!!errors[`${testimonial.id}-problem`]}
+                            onFocus={(e) => handleFieldFocus(testimonial.id, 'problem', e)}
                           />
                           {errors[`${testimonial.id}-problem`] && (
                             <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
@@ -551,6 +601,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                             rows={3}
                             className={`mt-2 bg-white ${errors[`${testimonial.id}-solution`] ? 'border-red-500' : ''}`}
                             data-error={!!errors[`${testimonial.id}-solution`]}
+                            onFocus={(e) => handleFieldFocus(testimonial.id, 'solution', e)}
                           />
                           {errors[`${testimonial.id}-solution`] && (
                             <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
@@ -601,6 +652,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                             rows={3}
                             className={`mt-2 bg-white ${errors[`${testimonial.id}-technical_result`] ? 'border-red-500' : ''}`}
                             data-error={!!errors[`${testimonial.id}-technical_result`]}
+                            onFocus={(e) => handleFieldFocus(testimonial.id, 'technical_result', e)}
                           />
                           {errors[`${testimonial.id}-technical_result`] && (
                             <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
@@ -636,6 +688,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                             rows={3}
                             className={`mt-2 bg-white ${errors[`${testimonial.id}-meaningful_result`] ? 'border-red-500' : ''}`}
                             data-error={!!errors[`${testimonial.id}-meaningful_result`]}
+                            onFocus={(e) => handleFieldFocus(testimonial.id, 'meaningful_result', e)}
                           />
                           {errors[`${testimonial.id}-meaningful_result`] && (
                             <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
@@ -678,6 +731,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                           rows={2}
                           className={`mt-2 bg-white ${errors[`${testimonial.id}-quote`] ? 'border-red-500' : ''}`}
                           data-error={!!errors[`${testimonial.id}-quote`]}
+                          onFocus={(e) => handleFieldFocus(testimonial.id, 'quote', e)}
                         />
                         {errors[`${testimonial.id}-quote`] && (
                           <p className="text-sm text-red-600 mt-2 flex items-center gap-1">

@@ -5,6 +5,7 @@ import { Loader2, Download, Copy, CheckCircle2, Mail } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { useDIY } from '../../contexts/DIYContext';
 import { Navigation } from '../Navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 // ✅ YOUR REAL CREDENTIALS
 const SUPABASE_URL = 'https://dbojiegvkyvbmbivmppi.supabase.co';
@@ -41,81 +42,90 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
   useEffect(() => {
     // Get parameters from URL if not provided via props
     const urlParams = new URLSearchParams(window.location.search);
-    const urlSessionId = urlParams.get('session_id');
-    const urlGenerationId = urlParams.get('generation_id');
+    const urlGenerationId = urlParams.get('id'); // ✅ Simple 'id' parameter from Stripe redirect
+    const localStorageId = localStorage.getItem('pending_generation_id'); // ✅ Fallback from localStorage
 
-    if (!sessionId && urlSessionId) {
-      setSessionId(urlSessionId);
-    }
+    console.log('🔍 DIYDownload - Looking for generation ID...');
+    console.log('  - URL id parameter:', urlGenerationId);
+    console.log('  - localStorage generation ID:', localStorageId);
+    console.log('  - Context generation ID:', contextGenerationId);
 
-    if (!generationId && urlGenerationId) {
-      setGenerationId(urlGenerationId);
-    }
+    // Use URL parameter first, then localStorage, then context, then props
+    const finalGenerationId = urlGenerationId || localStorageId || contextGenerationId || propGenerationId;
 
-    // ✅ NEW: Check if we have context data (test mode / dev skip)
-    const hasContextData = contextGenerationId && contextHtmlCode;
-    
-    // If we have either sessionId or generationId from URL, proceed with payment verification
-    if (sessionId || urlSessionId || generationId || urlGenerationId) {
-      verifyPaymentAndLoadCode(urlSessionId || sessionId, urlGenerationId || generationId);
-    } 
-    // ✅ NEW: If no URL params but we have context data, use it (test mode)
-    else if (hasContextData) {
-      setIsTestMode(true);
-      loadFromContext();
-    }
-    else {
-      toast.error('No payment session found');
-      onNavigateToDIY();
+    if (finalGenerationId) {
+      console.log('✅ Found generation ID:', finalGenerationId);
+      setGenerationId(finalGenerationId);
+      
+      // Clear localStorage after retrieving
+      if (localStorageId) {
+        localStorage.removeItem('pending_generation_id');
+        console.log('🧹 Cleared localStorage generation ID');
+      }
+      
+      loadGenerationData(finalGenerationId);
+    } else {
+      console.log('⚠️ No generation ID found - checking for test mode');
+      // Check if we have context data (test mode / dev skip)
+      const hasContextData = contextGenerationId && contextHtmlCode;
+      
+      if (hasContextData) {
+        console.log('✅ Using context data (test mode)');
+        setIsTestMode(true);
+        loadFromContext();
+      } else {
+        console.error('❌ No generation ID and no context data');
+        toast.error('No carousel found. Please create one first.');
+        onNavigateToDIY();
+      }
     }
   }, []);
 
-  const verifyPaymentAndLoadCode = async (sid: string | null, gid: string | null) => {
+  const loadGenerationData = async (gid: string) => {
     try {
       setIsLoading(true);
 
-      if (!gid) {
-        throw new Error('No generation ID found');
-      }
+      console.log('📡 Loading generation data for ID:', gid);
 
-      // Fetch generation data from diy_generations table
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/diy_generations?generation_id=eq.${gid}`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
-
-      const data = await response.json();
+      // Fetch generation data from diy_generations table using DIY Supabase client
+      const { getDIYSupabaseClient } = await import('../../utils/supabase/diy-client');
+      const diyClient = getDIYSupabaseClient();
       
-      if (!data || data.length === 0) {
+      const { data, error: dbError } = await diyClient
+        .from('diy_generations')
+        .select('*')
+        .eq('generation_id', gid)
+        .maybeSingle();
+
+      console.log('📡 Database response:', { data, error: dbError });
+      
+      if (dbError || !data) {
+        console.error('❌ Failed to load generation:', dbError);
         throw new Error('Generation not found');
       }
 
-      const generation = data[0];
+      const generation = data;
       setGenerationData(generation);
 
+      console.log('✅ Generation data loaded:', generation);
+
       // Mark as paid in diy_generations table
-      await fetch(`${SUPABASE_URL}/rest/v1/diy_generations?generation_id=eq.${gid}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
+      await diyClient
+        .from('diy_generations')
+        .update({
           paid: true,
-          stripe_session_id: sid || 'manual',
+          stripe_session_id: sessionId || 'buy-button-checkout',
           updated_at: new Date().toISOString()
         })
-      });
+        .eq('generation_id', gid);
+
+      console.log('✅ Marked as paid in database');
 
       // Auto-send email
       await sendCodeToEmail(generation);
 
     } catch (error) {
-      console.error('Verification error:', error);
+      console.error('❌ Verification error:', error);
       toast.error('Failed to load your code. Please contact support.');
     } finally {
       setIsLoading(false);
@@ -207,6 +217,18 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Navigation */}
+      <Navigation
+        onNavigateHome={onNavigateHome}
+        onNavigateToThermometer={onNavigateToThermometer}
+        onNavigateToDIY={onNavigateToDIY}
+        onNavigateToPricing={onNavigateToPricing}
+        currentPage="diy"
+      />
+      
+      {/* Spacer for fixed nav */}
+      <div style={{ height: '80px' }} />
+      
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Success Header */}
         <div className="text-center mb-8">
@@ -226,7 +248,7 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
 
         {/* Code Display */}
         <Card className="p-6 mb-6">
-          <h2 className="text-xl text-[#1c1c60] mb-4">Your HTML Code</h2>
+          <h2 className="text-xl text-[#1c1c60] mb-4">Here's the Code you need to paste in your website</h2>
           <div className="relative">
             <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm max-h-96">
               <code>{generationData.html_code}</code>
@@ -261,26 +283,110 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
           </Button>
         </div>
 
-        {/* Instructions */}
+        {/* Instructions with Tabs */}
         <Card className="p-6">
-          <h3 className="text-lg text-[#1c1c60] mb-4">How to Add to Your Website</h3>
-          <ol className="space-y-3 text-gray-700">
-            <li>
-              <strong>1. Copy the code above</strong>
-            </li>
-            <li>
-              <strong>2. Paste it into your website's HTML</strong>
-              <p className="text-sm text-gray-600 ml-4">Add it where you want the carousel to appear</p>
-            </li>
-            <li>
-              <strong>3. Save and publish your changes</strong>
-            </li>
-          </ol>
+          <h3 className="text-lg text-[#1c1c60] mb-6">How to Add to Your Website</h3>
           
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-gray-700">
-              <strong>💡 Tip:</strong> For WordPress, use a Custom HTML block. For Wix/Squarespace, use an Embed code element.
-            </p>
+          <Tabs defaultValue="wix" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="wix">Wix</TabsTrigger>
+              <TabsTrigger value="shopify">Shopify</TabsTrigger>
+              <TabsTrigger value="wordpress">WordPress</TabsTrigger>
+              <TabsTrigger value="manual">Manual editing</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="wix" className="mt-6">
+              <a 
+                href="https://youtu.be/zVqPqDkpjyM?si=1nI6KBOLHe2RgEZX" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow max-w-md mx-auto">
+                  <div className="aspect-video bg-gray-200 flex items-center justify-center">
+                    <img 
+                      src="https://img.youtube.com/vi/zVqPqDkpjyM/maxresdefault.jpg" 
+                      alt="Wix Tutorial"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm">How to add custom HTML code in Wix</p>
+                  </div>
+                </Card>
+              </a>
+            </TabsContent>
+
+            <TabsContent value="shopify" className="mt-6">
+              <a 
+                href="https://youtu.be/Uns4MNC8bxk?si=Xu2oOEJcKLouxxYm" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow max-w-md mx-auto">
+                  <div className="aspect-video bg-gray-200 flex items-center justify-center">
+                    <img 
+                      src="https://img.youtube.com/vi/Uns4MNC8bxk/maxresdefault.jpg" 
+                      alt="Shopify Tutorial"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm">How to add custom code in Shopify theme</p>
+                  </div>
+                </Card>
+              </a>
+            </TabsContent>
+
+            <TabsContent value="wordpress" className="mt-6">
+              <a 
+                href="https://youtu.be/dg5h1zo3XQU?si=k2wCHqoum4QJQwtf" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow max-w-md mx-auto">
+                  <div className="aspect-video bg-gray-200 flex items-center justify-center">
+                    <img 
+                      src="https://img.youtube.com/vi/dg5h1zo3XQU/maxresdefault.jpg" 
+                      alt="WordPress Tutorial"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm">How to add custom HTML block in WordPress</p>
+                  </div>
+                </Card>
+              </a>
+            </TabsContent>
+
+            <TabsContent value="manual" className="mt-6">
+              <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow max-w-md mx-auto opacity-50">
+                <div className="aspect-video bg-gray-200 flex items-center justify-center">
+                  <img 
+                    src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" 
+                    alt="Manual Editing Tutorial"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-4">
+                  <p className="text-sm">How to manually edit HTML files (Coming soon)</p>
+                </div>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          {/* Need Help Button */}
+          <div className="mt-6 text-center">
+            <Button
+              onClick={() => window.location.href = 'mailto:hello@thinksid.co'}
+              variant="outline"
+              className="h-10"
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Need Help?
+            </Button>
           </div>
         </Card>
       </div>

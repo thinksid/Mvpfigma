@@ -12,7 +12,7 @@ interface DIYProcessingProps {
   onNavigateToThermometer: () => void;
   onNavigateToDIY: () => void;
   onNavigateToPricing: () => void;
-  onNavigateToDIYPreview: () => void;
+  onNavigateToDIYPreview: (generationId?: string) => void;
   onNavigateToDIYCreate: () => void;
 }
 
@@ -156,7 +156,7 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
         console.log('🔍 Final check - generationId being passed:', data.generation_id);
         console.log('🔍 Final check - previewData being passed:', data.preview_data);
         setIsProcessing(false);
-        onNavigateToDIYPreview();
+        onNavigateToDIYPreview(data.generation_id); // ✅ Pass generation_id in URL
         console.log('✅ Navigation triggered');
         console.log('========== DIY PROCESSING COMPLETE ==========');
       }, 2000); // ✅ Increased from 1000ms to 2000ms

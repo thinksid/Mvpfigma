@@ -21,20 +21,25 @@ interface DIYPreviewProps {
   onNavigateToThermometer: () => void;
   onNavigateToDIY: () => void;
   onNavigateToPricing: () => void;
-  onNavigateToDIYDownload: () => void;
+  onNavigateToDIYDownload: (generationId?: string) => void;
   onNavigateToDIYCreate: () => void;
 }
 
 const SERVER_URL = `https://${diyProjectId}.supabase.co/functions/v1/make-server-1da61fc8`;
 
-// Stripe configuration
+// Stripe configuration - LIVE KEYS
 const STRIPE_PUBLISHABLE_KEY = 'pk_live_51SQ8RN1epFGDXBkybYp7vZzL0d73nEGxk7PHPsuX9trliPFpUTKFMkkTs0f1llKjZeYs9kDKHiHYfrpS1I2XwEE300ai8lQfJr';
-const STRIPE_PRICE_ID = 'price_1SQIpcGi1epFGDXBkypOPO9Tl'; // Replace with your actual price ID
+const STRIPE_BUY_BUTTON_ID = 'buy_btn_1SQInZ1epFGDXBkyWumuKai2';
 
-// Declare Stripe global for TypeScript
+// Declare Stripe Buy Button custom element for TypeScript
 declare global {
   interface Window {
     Stripe: any;
+  }
+  namespace JSX {
+    interface IntrinsicElements {
+      'stripe-buy-button': any;
+    }
   }
 }
 
@@ -61,6 +66,7 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
   const [vendorEmail, setVendorEmail] = useState('');
   const [isSavingVendorInfo, setIsSavingVendorInfo] = useState(false);
   const [isVendorInfoSaved, setIsVendorInfoSaved] = useState(false);
+  const [currentGenerationId, setCurrentGenerationId] = useState<string>('');
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
 
   useEffect(() => {
@@ -70,17 +76,17 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
 
   const loadStripeScript = () => {
     // Check if script already exists
-    if (document.querySelector('script[src="https://js.stripe.com/v3/"]')) {
+    if (document.querySelector('script[src="https://js.stripe.com/v3/buy-button.js"]')) {
       setStripeLoaded(true);
       return;
     }
 
     const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3/';
+    script.src = 'https://js.stripe.com/v3/buy-button.js';
     script.async = true;
     script.onload = () => setStripeLoaded(true);
     script.onerror = () => {
-      console.error('Failed to load Stripe script');
+      console.error('Failed to load Stripe Buy Button script');
       toast.error('Failed to load payment system. Please refresh the page.');
     };
     document.body.appendChild(script);
@@ -93,6 +99,7 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
 
       // Use HTML from context if available
       if (contextHtmlCode && contextHtmlCode.trim().length > 0) {
+        console.log('✅ Using HTML from context');
         setHtmlCode(contextHtmlCode);
         setLoading(false);
         return;
@@ -101,11 +108,48 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
       // Try to get generation_id from context first, then URL
       const urlParams = new URLSearchParams(window.location.search);
       const urlGenerationId = urlParams.get('id');
+      const sessionId = urlParams.get('session_id'); // Stripe redirects with session_id
       const idToFetch = contextGenerationId || urlGenerationId;
 
+      console.log('🔍 Looking for generation ID...');
+      console.log('  - Context generation ID:', contextGenerationId);
+      console.log('  - URL generation ID:', urlGenerationId);
+      console.log('  - Stripe session ID:', sessionId);
+      console.log('  - ID to fetch:', idToFetch);
+
+      // If we have a Stripe session ID but no generation ID, we need to look it up
+      if (sessionId && !idToFetch) {
+        console.log('💳 Stripe payment detected, looking up generation from session...');
+        
+        // Query the database to find the generation associated with this session
+        const { data: generationData, error: lookupError } = await sb
+          .from('diy_generations')
+          .select('*')
+          .eq('stripe_session_id', sessionId)
+          .maybeSingle();
+
+        if (lookupError || !generationData) {
+          console.error('❌ Failed to find generation by session ID:', lookupError);
+          throw new Error('Unable to find your carousel. Please contact support with your order ID.');
+        }
+
+        console.log('✅ Found generation from session:', generationData.generation_id);
+        
+        // Update context with found data
+        if (generationData.html_code) {
+          setHtmlCode(generationData.html_code);
+          setTestimonialCount(generationData.testimonial_count || 0);
+          setLoading(false);
+          return;
+        }
+      }
+
       if (!idToFetch) {
+        console.error('❌ No generation ID found');
         throw new Error('No generation ID found. Please create a carousel first.');
       }
+
+      console.log('📡 Fetching generation from database...');
 
       // Fetch from diy_generations table
       const { data, error: dbError } = await sb
@@ -115,20 +159,21 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
         .maybeSingle();
 
       if (dbError || !data) {
-        console.error('Failed to load carousel:', dbError);
+        console.error('❌ Failed to load carousel:', dbError);
         throw new Error('Carousel not found. Please generate a new one.');
       }
 
       if (!data.html_code) {
-        console.error('HTML code not found in generation data');
+        console.error('❌ HTML code not found in generation data');
         throw new Error('HTML code not found. Please wait for processing to complete.');
       }
 
+      console.log('✅ Successfully loaded carousel');
       setHtmlCode(data.html_code);
       setTestimonialCount(data.testimonial_count || 0);
       setLoading(false);
     } catch (err) {
-      console.error('Error loading preview:', err);
+      console.error('💥 Error loading preview:', err);
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setLoading(false);
       toast.error('Failed to load carousel preview');
@@ -151,6 +196,17 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
 
   // Handle opening the checkout modal
   const handleProceedToCheckout = () => {
+    // Get generation ID and store it
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlGenerationId = urlParams.get('id');
+    const generationId = contextGenerationId || urlGenerationId;
+    
+    if (generationId) {
+      setCurrentGenerationId(generationId);
+      // Store in localStorage as backup
+      localStorage.setItem('pending_generation_id', generationId);
+    }
+    
     setIsModalOpen(true);
   };
 
@@ -186,36 +242,27 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
     setIsSavingVendorInfo(true);
 
     try {
-      console.log('💾 Saving vendor info...');
+      console.log('💾 Saving vendor info directly to database...');
       console.log('  - Generation ID:', generationId);
       console.log('  - Vendor Name:', vendorName);
       console.log('  - Vendor Email:', vendorEmail);
 
-      const response = await fetch(`${SERVER_URL}/diy/update-vendor`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${diyPublicAnonKey}`,
-        },
-        body: JSON.stringify({
-          generation_id: generationId,
+      // Save directly to Supabase using the DIY client
+      const { error: updateError } = await sb
+        .from('diy_generations')
+        .update({
           vendor_name: vendorName,
           vendor_email: vendorEmail,
-        }),
-      }).catch(err => {
-        console.error('Network error details:', err);
-        throw new Error(`Network error: ${err.message}`);
-      });
+          updated_at: new Date().toISOString()
+        })
+        .eq('generation_id', generationId);
 
-      const data = await response.json();
-
-      console.log('📡 Server response:', data);
-      console.log('📡 Response status:', response.status);
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to save vendor information');
+      if (updateError) {
+        console.error('❌ Database error:', updateError);
+        throw new Error('Failed to save vendor information');
       }
 
+      console.log('✅ Vendor info saved successfully');
       toast.success('Information saved! You can now proceed to checkout.');
       
       setIsSavingVendorInfo(false);
@@ -245,19 +292,37 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
     try {
       console.log('🛒 Creating Stripe Checkout Session...');
       console.log('  - Generation ID:', generationId);
+      console.log('  - Server URL:', SERVER_URL);
+
+      // Build the success URL with generation_id - simple query param
+      const successUrl = `${window.location.origin}/diy-download?id=${generationId}`;
+      const cancelUrl = `${window.location.origin}/diy-preview?id=${generationId}`;
+
+      console.log('  - Success URL:', successUrl);
+      console.log('  - Cancel URL:', cancelUrl);
 
       const response = await fetch(`${SERVER_URL}/stripe/create-checkout-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${diyPublicAnonKey}`,
+          'apikey': diyPublicAnonKey,
         },
         body: JSON.stringify({
           generation_id: generationId,
+          success_url: successUrl,
+          cancel_url: cancelUrl,
         }),
+      }).catch(err => {
+        console.error('❌ Network error:', err);
+        throw new Error(`Network error: ${err.message}`);
       });
 
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+
       const data = await response.json();
+      console.log('📡 Response data:', data);
 
       if (!response.ok || !data.success || !data.url) {
         throw new Error(data.error || 'Failed to create checkout session');
@@ -447,11 +512,11 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
               </p>
 
               {/* Confirm Button */}
-              <div className="pt-2">
+              <div className="pt-2 flex justify-center">
                 <Button
                   onClick={handleSaveVendorInfo}
                   disabled={!isFormValid() || isSavingVendorInfo || isVendorInfoSaved}
-                  className="w-full bg-[#5b81ff] text-white hover:bg-[#4a6fe0] disabled:bg-gray-300 disabled:text-gray-500"
+                  className="w-full max-w-md bg-[#5b81ff] text-white hover:bg-[#4a6fe0] disabled:bg-gray-300 disabled:text-gray-500"
                 >
                   {isSavingVendorInfo ? (
                     <>
@@ -472,26 +537,30 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
               </div>
 
               {/* Stripe Checkout Button */}
-              <div className="pt-2">
-                {isVendorInfoSaved ? (
-                  <Button
-                    onClick={handleStripeCheckout}
-                    disabled={isProcessingCheckout}
-                    className="w-full bg-[#ebff82] text-[#1c1c60] hover:bg-[#d9ed70] h-12"
-                  >
-                    {isProcessingCheckout ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        💳 Proceed to Payment
-                      </>
-                    )}
-                  </Button>
+              <div className="pt-2 flex justify-center">
+                {isVendorInfoSaved && stripeLoaded ? (
+                  <div className="w-full max-w-md">
+                    <div className="flex justify-center">
+                      <stripe-buy-button
+                        buy-button-id={STRIPE_BUY_BUTTON_ID}
+                        publishable-key={STRIPE_PUBLISHABLE_KEY}
+                        client-reference-id={currentGenerationId}
+                      />
+                    </div>
+                    {/* Payment Info */}
+                    <div className="mt-4 text-center">
+                      <p className="text-sm text-gray-500">
+                        💳 Secure payment powered by Stripe
+                      </p>
+                    </div>
+                  </div>
+                ) : isVendorInfoSaved && !stripeLoaded ? (
+                  <div className="w-full max-w-md h-12 bg-gray-100 rounded-md flex items-center justify-center">
+                    <Loader2 className="w-4 h-4 animate-spin mr-2 text-gray-400" />
+                    <span className="text-gray-500 text-sm">Loading payment...</span>
+                  </div>
                 ) : (
-                  <div className="w-full h-12 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-sm border-2 border-gray-300 border-dashed">
+                  <div className="w-full max-w-md h-12 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-sm border-2 border-gray-300 border-dashed">
                     Click Confirm to enable checkout
                   </div>
                 )}
@@ -565,25 +634,6 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Test Mode Button */}
-        <div className="pt-4 border-t border-gray-200 w-full max-w-md mx-auto">
-          <p className="text-xs text-gray-400 text-center mb-2">Development Testing</p>
-          <Button
-            variant="outline"
-            onClick={onNavigateToDIYDownload}
-            className="w-full text-sm border-dashed border-gray-300 text-gray-500 hover:text-gray-700 hover:border-gray-400"
-          >
-            🧪 Skip to Download Page (Test Mode)
-          </Button>
-        </div>
-
-        {/* Payment Info */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500">
-            💳 Secure payment powered by Stripe • 30-day money-back guarantee
-          </p>
         </div>
       </div>
     </div>

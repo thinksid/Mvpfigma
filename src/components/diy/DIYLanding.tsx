@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigation } from '../Navigation';
 import { Upload, Eye, Code2, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
-import { CustomerStoryCarousel } from '../CustomerStoryCarousel';
+import { ThinkSidsCarousel } from '../ThinkSidsCarousel';
 import { CodePreview } from '../CodePreview';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import carouselPreviewImage from 'figma:asset/00ba47538c52501c3f143a608514979f2c1f6213.png';
@@ -15,7 +15,7 @@ interface DIYLandingProps {
   onNavigateToDIYCreate: () => void;
 }
 
-const customerStories = [
+export const customerStories = [
   {
     headline: "47% Increase in Lead Quality with DIY Carousel",
     name: "Marcus Chen",
@@ -223,7 +223,7 @@ export const DIYLanding: React.FC<DIYLandingProps> = ({
             </p>
           </div>
 
-          <CustomerStoryCarousel stories={customerStories} />
+          <ThinkSidsCarousel stories={customerStories} />
         </div>
       </section>
 

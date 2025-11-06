@@ -6,6 +6,7 @@ import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from 'sonner@2.0.3';
+import { getFreebieSupabaseClient } from '../utils/supabase/freebie-client';
 
 interface Finding {
   dimension: string;
@@ -120,6 +121,64 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
       setEmailError('Failed to send email. Please try again.');
     } finally {
       setIsEmailLoading(false);
+    }
+  };
+
+  // Handle booking a call - opens calendar and updates leads table
+  const handleBookCall = async (service: 'diwy' | 'dify') => {
+    try {
+      // Update the leads table based on which service was selected
+      const supabase = getFreebieSupabaseClient();
+      
+      const updateData = service === 'diwy' 
+        ? { diwy_requestedat: new Date().toISOString() }
+        : { dify_requestedat: new Date().toISOString() };
+      
+      const { error: updateError } = await supabase
+        .from('leads')
+        .update(updateData)
+        .eq('id', data.lead_id);
+
+      if (updateError) {
+        console.error('Error updating lead:', updateError);
+      }
+
+      // Open calendar link
+      window.open('https://calendar.notion.so/meet/santiagothinksid/5j8824oqb', '_blank');
+      
+      toast.success('Opening calendar... Book a time that works for you!');
+    } catch (error) {
+      console.error('Error in handleBookCall:', error);
+      // Still open the calendar even if the database update fails
+      window.open('https://calendar.notion.so/meet/santiagothinksid/5j8824oqb', '_blank');
+    }
+  };
+
+  // Handle DIY start - updates leads table and navigates
+  const handleDIYStart = async () => {
+    try {
+      // Update the leads table to mark that they started DIY
+      const supabase = getFreebieSupabaseClient();
+      
+      const { error: updateError } = await supabase
+        .from('leads')
+        .update({ diy_requestedat: new Date().toISOString() })
+        .eq('id', data.lead_id);
+
+      if (updateError) {
+        console.error('Error updating lead for DIY:', updateError);
+      }
+
+      // Navigate to DIY tool
+      if (onNavigateToDIY) {
+        onNavigateToDIY();
+      }
+    } catch (error) {
+      console.error('Error in handleDIYStart:', error);
+      // Still navigate even if the database update fails
+      if (onNavigateToDIY) {
+        onNavigateToDIY();
+      }
     }
   };
 
@@ -254,7 +313,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
             {/* CTA Section - Centered with Equal Width */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto">
               <Button
-                onClick={onNavigateToDIY}
+                onClick={handleDIYStart}
                 className="bg-[#5b81ff] hover:bg-[#4a70ee] text-white h-14 px-8 rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 flex-1"
               >
                 Build More Trust Now
@@ -462,7 +521,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              onClick={onNavigateToDIY}
+              onClick={handleDIYStart}
               className="bg-[#ebff82] hover:bg-[#d4e86f] text-[#1c1c60] h-14 px-10 rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
               style={{ fontSize: '16px', fontWeight: 'bold' }}
             >
@@ -523,7 +582,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
               </div>
               
               <Button 
-                onClick={onNavigateToDIY}
+                onClick={handleDIYStart}
                 className="w-full h-14 bg-gradient-to-r from-[#1c1c60] to-[#2a3f6f] text-white hover:from-[#2a3f6f] hover:to-[#1c1c60] rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
                 style={{ fontSize: '16px', fontWeight: 'bold' }}
               >
@@ -569,7 +628,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
               </div>
               
               <Button 
-                onClick={onNavigateToPricing}
+                onClick={() => handleBookCall('diwy')}
                 className="w-full h-14 bg-[#1c1c60] text-white hover:bg-[#2a3f6f] rounded-xl shadow-lg hover:shadow-xl transition-all"
                 style={{ fontSize: '16px', fontWeight: 'bold' }}
               >
@@ -612,7 +671,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
               </div>
               
               <Button 
-                onClick={onNavigateToPricing}
+                onClick={() => handleBookCall('dify')}
                 className="w-full h-14 bg-[#1c1c60] text-white hover:bg-[#2a3f6f] rounded-xl shadow-lg hover:shadow-xl transition-all"
                 style={{ fontSize: '16px', fontWeight: 'bold' }}
               >

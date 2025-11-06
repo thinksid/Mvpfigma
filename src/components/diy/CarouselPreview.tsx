@@ -8,7 +8,7 @@ import {
   CarouselPrevious,
 } from '../ui/carousel';
 import { Card } from '../ui/card';
-import { MapPin, Quote } from 'lucide-react';
+import { MapPin, Quote, UserCircle2 } from 'lucide-react';
 
 interface CarouselPreviewProps {
   slides: CarouselSlide[];
@@ -87,9 +87,7 @@ export const CarouselPreview: React.FC<CarouselPreviewProps> = ({ slides }) => {
                     <div className="flex-shrink-0">
                       {slide.photo_url === 'placeholder' || !slide.photo_url ? (
                         <div className="w-24 h-24 rounded-full bg-[#ebff82] flex items-center justify-center">
-                          <span className="text-3xl text-[#1c1c60]">
-                            {(slide.name || slide.customer_name || 'U').charAt(0).toUpperCase()}
-                          </span>
+                          <UserCircle2 className="w-16 h-16 text-[#1c1c60]" />
                         </div>
                       ) : (
                         <img

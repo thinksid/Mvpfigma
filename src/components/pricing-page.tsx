@@ -1,3 +1,4 @@
+import image_cff0762a6794db634da4baa2ef71750dfd161e77 from 'figma:asset/cff0762a6794db634da4baa2ef71750dfd161e77.png';
 import React, { useState } from 'react';
 import { Navigation } from './Navigation';
 import { Footer } from './Footer';
@@ -164,7 +165,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <img
-              src={logo}
+              src={image_cff0762a6794db634da4baa2ef71750dfd161e77}
               alt="Think SID Logo"
               className="h-16 w-auto"
             />
