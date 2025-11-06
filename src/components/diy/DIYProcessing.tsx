@@ -147,14 +147,16 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
 
       console.log('📊 Progress set to 100%');
 
-      // Wait a moment to show 100% completion
+      // ✅ FIX: Wait longer to ensure context state propagates
       setTimeout(() => {
         console.log('🎯 Navigating to preview page...');
+        console.log('🔍 Final check - generationId being passed:', data.generation_id);
+        console.log('🔍 Final check - previewData being passed:', data.preview_data);
         setIsProcessing(false);
         onNavigateToDIYPreview();
         console.log('✅ Navigation triggered');
         console.log('========== DIY PROCESSING COMPLETE ==========');
-      }, 1000);
+      }, 2000); // ✅ Increased from 1000ms to 2000ms
 
     } catch (err) {
       console.error('💥 ========== DIY PROCESSING ERROR ==========');

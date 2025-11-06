@@ -14,21 +14,44 @@ interface CarouselPreviewProps {
   slides: CarouselSlide[];
 }
 
-// Helper function to safely convert any value to a string
+// ✅ FIXED: Helper function to safely convert any value to a string and filter out N/A
 const safeString = (value: any): string => {
   if (!value) return '';
-  if (typeof value === 'string') return value;
+  
+  if (typeof value === 'string') {
+    // ✅ FIX: Filter out "N/A" values and variations
+    const cleanValue = value.trim();
+    if (
+      cleanValue === 'N/A' || 
+      cleanValue === 'null' || 
+      cleanValue.toLowerCase() === 'n/a' ||
+      cleanValue === 'undefined'
+    ) {
+      return '';
+    }
+    return value;
+  }
+  
   if (typeof value === 'object') {
     // If it's an object with farm data, create a meaningful string
     const acres = value.acres || '';
     const crop = value.crop_type || '';
     const state = value.state_abbr || '';
     
-    // Build a string from available parts
+    // ✅ FIX: Filter out "N/A" values from object fields
     const parts = [];
-    if (acres && acres !== 'null') parts.push(`${acres} acres`);
-    if (crop && crop !== 'null') parts.push(crop);
-    if (state && state !== 'null') parts.push(state);
+    
+    if (acres && acres !== 'null' && acres !== 'N/A' && acres.toLowerCase() !== 'n/a') {
+      parts.push(`${acres} acres`);
+    }
+    
+    if (crop && crop !== 'null' && crop !== 'N/A' && crop.toLowerCase() !== 'n/a') {
+      parts.push(crop);
+    }
+    
+    if (state && state !== 'null' && state !== 'N/A' && state.toLowerCase() !== 'n/a') {
+      parts.push(state);
+    }
     
     if (parts.length > 0) {
       return parts.join(', ');
@@ -37,6 +60,7 @@ const safeString = (value: any): string => {
     // If no meaningful parts, return empty string instead of JSON
     return '';
   }
+  
   return String(value);
 };
 
@@ -93,14 +117,14 @@ export const CarouselPreview: React.FC<CarouselPreviewProps> = ({ slides }) => {
                 {/* Story Content */}
                 <div className="p-8 space-y-6">
                   {/* Headline */}
-                  {slide.headline && (
+                  {slide.headline && safeString(slide.headline) && (
                     <div>
                       <h4 className="text-2xl text-[#1c1c60] mb-4">{safeString(slide.headline)}</h4>
                     </div>
                   )}
 
                   {/* Context */}
-                  {(slide.farm_context || slide.context) && (
+                  {(slide.farm_context || slide.context) && safeString(slide.farm_context || slide.context) && (
                     <div>
                       <h4 className="text-lg text-[#1c1c60] mb-2">Background</h4>
                       <p className="text-gray-700 leading-relaxed">{safeString(slide.farm_context || slide.context)}</p>
@@ -108,7 +132,7 @@ export const CarouselPreview: React.FC<CarouselPreviewProps> = ({ slides }) => {
                   )}
 
                   {/* Problem */}
-                  {(slide.challenge || slide.problem) && (
+                  {(slide.challenge || slide.problem) && safeString(slide.challenge || slide.problem) && (
                     <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
                       <h4 className="text-lg text-red-900 mb-2">The Challenge</h4>
                       <p className="text-red-800 leading-relaxed">{safeString(slide.challenge || slide.problem)}</p>
@@ -116,7 +140,7 @@ export const CarouselPreview: React.FC<CarouselPreviewProps> = ({ slides }) => {
                   )}
 
                   {/* Solution */}
-                  {slide.solution && (
+                  {slide.solution && safeString(slide.solution) && (
                     <div className="bg-blue-50 border-l-4 border-[#5b81ff] p-4 rounded">
                       <h4 className="text-lg text-[#1c1c60] mb-2">The Solution</h4>
                       <p className="text-gray-700 leading-relaxed">{safeString(slide.solution)}</p>
@@ -126,13 +150,13 @@ export const CarouselPreview: React.FC<CarouselPreviewProps> = ({ slides }) => {
                   {/* Results Grid */}
                   {(slide.technical_metric || slide.technical_result || slide.financial_metric || slide.meaningful_result) && (
                     <div className="grid md:grid-cols-2 gap-4">
-                      {(slide.technical_metric || slide.technical_result) && (
+                      {(slide.technical_metric || slide.technical_result) && safeString(slide.technical_metric || slide.technical_result) && (
                         <div className="bg-gradient-to-br from-[#5b81ff]/10 to-[#ebff82]/10 p-4 rounded-lg border border-[#5b81ff]/20">
                           <h4 className="text-lg text-[#1c1c60] mb-2">📊 Technical Results</h4>
                           <p className="text-gray-700 leading-relaxed">{safeString(slide.technical_metric || slide.technical_result)}</p>
                         </div>
                       )}
-                      {(slide.financial_metric || slide.meaningful_result) && (
+                      {(slide.financial_metric || slide.meaningful_result) && safeString(slide.financial_metric || slide.meaningful_result) && (
                         <div className="bg-gradient-to-br from-[#ebff82]/10 to-[#5b81ff]/10 p-4 rounded-lg border border-[#5b81ff]/20">
                           <h4 className="text-lg text-[#1c1c60] mb-2">💡 Meaningful Impact</h4>
                           <p className="text-gray-700 leading-relaxed">{safeString(slide.financial_metric || slide.meaningful_result)}</p>
@@ -142,7 +166,9 @@ export const CarouselPreview: React.FC<CarouselPreviewProps> = ({ slides }) => {
                   )}
 
                   {/* Quote */}
-                  {(slide.customer_quote || slide.quote) && (slide.customer_quote !== 'placeholder' && slide.quote !== 'placeholder') && (
+                  {(slide.customer_quote || slide.quote) && 
+                   (slide.customer_quote !== 'placeholder' && slide.quote !== 'placeholder') && 
+                   safeString(slide.customer_quote || slide.quote) && (
                     <div className="bg-gradient-to-br from-[#1c1c60] to-[#5b81ff] text-white p-6 rounded-lg relative">
                       <Quote className="w-8 h-8 text-[#ebff82] mb-3 opacity-50" />
                       <blockquote className="text-xl italic leading-relaxed">

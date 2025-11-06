@@ -75,9 +75,21 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
     console.log('Context previewData:', contextPreviewData);
     console.log('Prop generationId:', propGenerationId);
     console.log('Final generationId:', generationId);
+    console.log('Preview data state:', previewData);
+    
+    // ✅ FIX: Update local state if context has data
+    if (contextGenerationId && !generationId) {
+      console.log('✅ Updating generationId from context:', contextGenerationId);
+      setGenerationId(contextGenerationId);
+    }
+    
+    if (contextPreviewData && !previewData) {
+      console.log('✅ Updating previewData from context:', contextPreviewData);
+      setPreviewData(contextPreviewData);
+    }
     
     // Try to get generation_id from URL query params if not provided via props
-    if (!generationId) {
+    if (!generationId && !contextGenerationId) {
       const urlParams = new URLSearchParams(window.location.search);
       const urlGenerationId = urlParams.get('id');
       console.log('URL generationId:', urlGenerationId);
@@ -89,9 +101,9 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
         return;
       }
     } else {
-      console.log('✅ GenerationId found:', generationId);
+      console.log('✅ GenerationId found:', generationId || contextGenerationId);
     }
-  }, []);
+  }, [contextGenerationId, contextPreviewData]); // ✅ FIX: Added dependencies
 
   useEffect(() => {
     if (generationId) {
@@ -117,37 +129,75 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
   };
 
   const loadPreview = async () => {
-    if (!generationId) return;
+    if (!generationId) {
+      console.log('⚠️ loadPreview called but no generationId available');
+      return;
+    }
+    
+    // ✅ FIX: If we already have preview data from context, use it and skip Supabase query
+    if (contextPreviewData && contextPreviewData.length > 0) {
+      console.log('✅ Using preview data from context (skipping Supabase query)');
+      console.log('📊 Context preview data:', contextPreviewData);
+      setPreviewData(contextPreviewData);
+      setIsLoading(false);
+      return;
+    }
     
     try {
+      console.log('🔄 === LOADING PREVIEW FROM SUPABASE ===');
       const kvKey = `diy_generation:${generationId}`;
+      console.log('🔑 KV Key:', kvKey);
       
+      console.log('📡 Querying Supabase...');
       const { data, error } = await sb
         .from('kv_store_1da61fc8')
         .select('value')
         .eq('key', kvKey)
         .maybeSingle();
       
+      console.log('📥 Supabase query result:');
+      console.log('  - Error:', error);
+      console.log('  - Data:', data);
+      
       if (error || !data) {
+        console.error('❌ Preview not found in Supabase');
+        console.error('  - Error details:', error);
+        console.error('  - Data received:', data);
+        console.error('  - This might be an RLS (Row Level Security) issue');
+        console.error('  - N8N writes with service role key, but frontend reads with anon key');
         toast.error('Preview not found. Please generate a new carousel');
         onNavigateToDIYCreate();
         return;
       }
       
+      console.log('✅ Data found in Supabase!');
       const generationData = data.value as any;
+      console.log('📊 Generation data structure:', Object.keys(generationData));
+      console.log('📊 Generation data:', generationData);
+      console.log('📊 Preview data from DB:', generationData.preview_data);
+      
       setPreviewData(generationData.preview_data as CarouselSlide[]);
+      console.log('✅ Preview data set in state');
+      
       setAlreadyPaid(generationData.paid || false);
+      console.log('💰 Paid status:', generationData.paid || false);
 
       // Check if email already captured
       if (generationData.customer_email && generationData.customer_name) {
         setEmailCaptured(true);
         setCustomerEmail(generationData.customer_email);
         setCustomerName(generationData.customer_name);
+        console.log('✅ Customer info loaded:', { email: generationData.customer_email, name: generationData.customer_name });
       }
+      
+      console.log('=== LOADING PREVIEW COMPLETE ===');
     } catch (error) {
-      console.error('Load preview error:', error);
+      console.error('💥 Load preview error:', error);
+      console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
       onNavigateToDIYCreate();
     } finally {
+      console.log('🏁 Setting isLoading to false');
       setIsLoading(false);
     }
   };
