@@ -90,7 +90,6 @@ export const ThermometerProcessing: React.FC<ThermometerProcessingProps> = ({
       }
 
       const responseText = await response.text();
-      console.log('Raw response:', responseText);
 
       if (!responseText || responseText.trim() === '') {
         throw new Error('Server returned an empty response');
@@ -104,8 +103,6 @@ export const ThermometerProcessing: React.FC<ThermometerProcessingProps> = ({
         console.error('Response text:', responseText);
         throw new Error('Failed to parse server response');
       }
-
-      console.log('Parsed data:', data);
 
       // Validate response
       if (!data.scan_id || !data.preview) {

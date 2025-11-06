@@ -3,7 +3,8 @@ import image_7133fcd99e328bbf1529af7b613cd3661c4d6a46 from 'figma:asset/7133fcd9
 import React, { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
 import { Button } from './ui/button';
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription, SheetHeader } from './ui/sheet';
+import { VisuallyHidden } from './ui/visually-hidden';
 import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
 
 interface NavigationProps {
@@ -101,6 +102,10 @@ export const Navigation: React.FC<NavigationProps> = ({
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+                <SheetDescription>Choose a page to navigate to</SheetDescription>
+              </SheetHeader>
               <div className="flex flex-col gap-6 mt-8">
                 <button
                   onClick={() => {

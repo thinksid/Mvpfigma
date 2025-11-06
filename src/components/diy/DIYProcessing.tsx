@@ -128,8 +128,8 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
       console.log('📝 HTML Code length:', data.html_code.length);
       console.log('📊 Preview data:', data.preview_data);
 
-      // ✅ N8N already saved to Supabase - no extra save needed!
-      console.log('💾 N8N has saved to Supabase with key: diy_generation:' + data.generation_id);
+      // ✅ N8N already saved to diy_generations table - no extra save needed!
+      console.log('💾 N8N has saved to diy_generations table with generation_id:', data.generation_id);
 
       // Store in context
       console.log('🔄 Setting generation ID in context:', data.generation_id);

@@ -1,13 +1,14 @@
-import image_17da7883e3dbcea089c2c87883548245f7b8aa61 from 'figma:asset/17da7883e3dbcea089c2c87883548245f7b8aa61.png';
 import React, { useState } from 'react';
-import { Wrench, Handshake, Sparkles, Check, X, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Navigation } from './Navigation';
+import { Footer } from './Footer';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { toast } from 'sonner@2.0.3';
-import { getSupabaseClient } from '../utils/supabase/client';
+import { getFreebieSupabaseClient } from '../utils/supabase/freebie-client';
 import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
+import { ArrowLeft, Check, Wrench, Handshake, Sparkles, X, AlertCircle, Loader2 } from 'lucide-react';
 
 interface PricingPageProps {
   onNavigateHome: () => void;
@@ -58,7 +59,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
     setEmailError('');
 
     try {
-      const supabase = getSupabaseClient();
+      const supabase = getFreebieSupabaseClient();
 
       // Check if lead already exists
       const { data: existingLeads } = await supabase
@@ -163,7 +164,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <img
-              src={image_17da7883e3dbcea089c2c87883548245f7b8aa61}
+              src={logo}
               alt="Think SID Logo"
               className="h-16 w-auto"
             />

@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { CustomerStoryCarousel } from '../CustomerStoryCarousel';
 import { CodePreview } from '../CodePreview';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
+import carouselPreviewImage from 'figma:asset/00ba47538c52501c3f143a608514979f2c1f6213.png';
 
 interface DIYLandingProps {
   onNavigateHome: () => void;
@@ -16,97 +17,97 @@ interface DIYLandingProps {
 
 const customerStories = [
   {
-    headline: "23% Yield Boost, $45/Acre Savings",
-    name: "John Anderson",
-    location: "Iowa",
-    photo: "https://images.unsplash.com/photo-1570966087241-20278ac27b2c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYXBweSUyMGZhcm1lcnxlbnwxfHx8fDE3NjIzNjEyNjF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    challenge: "Rising costs and poor soil quality cut into John's farm profits.",
-    solution: "John switched to Premium Organic Fertilizer with tailored soil management.",
+    headline: "47% Increase in Lead Quality with DIY Carousel",
+    name: "Marcus Chen",
+    location: "Bio-Nutrient Solutions, California",
+    photo: "https://images.unsplash.com/photo-1543879739-ab87be3df369?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMGJ1c2luZXNzJTIwbWFuJTIwcHJvZmVzc2lvbmFsfGVufDF8fHx8MTc2MjMzNDM2NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    challenge: "Generic testimonials weren't converting website visitors into qualified leads.",
+    solution: "Used think SID's DIY Social Proof Carousel to showcase farmer results with specific metrics.",
     metrics: [
-      "23% Corn Yield Increase",
-      "$45/acre Fertilizer Cost Savings"
+      "47% Increase in Lead Quality",
+      "22% More Demo Requests"
     ],
     fullStory: {
-      farmContext: "500 acres | Corn | IA",
-      challengeDetail: "John Anderson, running a 500-acre Iowa family farm for three generations, faced declining soil health. Conventional methods led to rising fertilizer costs and poor soil quality, cutting into his profit margins and threatening long-term sustainability.",
-      solutionDetail: "He switched to our Premium Organic Fertilizer program, which included customized soil testing. Our agronomist collaborated with John to develop a tailored nutrient management plan, optimizing application schedules for his farm.",
+      farmContext: "Organic Fertilizer Vendor | CA",
+      challengeDetail: "Marcus Chen's company, Bio-Nutrient Solutions, had plenty of happy customers but struggled to convert website traffic. Generic testimonials like 'great product!' weren't compelling enough for skeptical farmers who needed proof before investing thousands in a new soil amendment program.",
+      solutionDetail: "Marcus used think SID's DIY Social Proof Carousel tool to transform vague praise into data-rich success stories. He plugged in farmer testimonials with specific yield increases, cost savings, and soil health metrics. The carousel automatically formatted everything into a professional, conversion-optimized design.",
       results: [
-        "Achieved a 23% increase in corn yields in the first season.",
-        "Soil organic matter increased from 2.1% to 3.4% within 18 months.",
-        "Reduced chemical fertilizer costs by $45 per acre."
+        "Lead quality score increased by 47% - more qualified prospects reaching out.",
+        "Demo requests jumped 22% within the first month of deployment.",
+        "Reduced sales cycle by 18% because prospects arrived pre-convinced by peer success stories.",
+        "Implementation took just 45 minutes from start to website deployment."
       ],
-      quote: "This product transformed my operation. I'm seeing results I haven't achieved in years."
+      quote: "I was shocked how easy it was. I just pasted in our farmer results, customized the colors to match our brand, and had a professional carousel live on our site the same afternoon. The quality of our inbound leads improved immediately."
     }
   },
   {
-    headline: "31% Fertilizer Savings, 18% Yield Gain",
-    name: "Sarah Mitchell",
-    location: "Nebraska",
-    photo: "https://images.unsplash.com/photo-1629655842433-4579f180a070?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZ3JpY3VsdHVyZSUyMGVxdWlwbWVudHxlbnwxfHx8fDE3NjIyODAyMjl8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    challenge: "Guesswork farming caused uneven yields and wasted inputs.",
-    solution: "Implemented precision agriculture consulting for data-driven decisions.",
+    headline: "61% Conversion Rate Lift with Guided Implementation",
+    name: "Jennifer Martinez",
+    location: "PrecisionAg Systems, Iowa",
+    photo: "https://images.unsplash.com/photo-1692459411840-f396f46a0524?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXRpbmElMjBidXNpbmVzc3dvbWFuJTIwcHJvZmVzc2lvbmFsfGVufDF8fHx8MTc2MjMzODI0NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    challenge: "Had testimonials but didn't know how to tell compelling stories that drive sales.",
+    solution: "Partnered with think SID's Do It With You service for storytelling strategy and deployment.",
     metrics: [
-      "18% Average Field Productivity",
-      "31% Fertilizer Waste Reduction"
+      "61% Homepage Conversion Increase",
+      "38% Higher Email Opt-ins"
     ],
     fullStory: {
-      farmContext: "Diversified Grains | NE",
-      challengeDetail: "As a first-generation farmer, Sarah managed a diversified grain operation but felt overwhelmed by modern farming technology and data. Her planting and fertilizer decisions relied on guesswork, causing uneven field yields and wasted inputs in low-productivity zones.",
-      solutionDetail: "Sarah enrolled in our Precision Agriculture Consulting program. This included drone mapping, soil sampling, and variable rate application planning, providing her with expert data interpretation for informed decision-making.",
+      farmContext: "Precision Ag Technology | IA",
+      challengeDetail: "Jennifer's team at PrecisionAg Systems sold drone mapping and soil analysis services. They had customer success data but struggled to craft narratives that resonated with their target audience. Their website had a 2.1% conversion rate - well below industry benchmarks for ag tech.",
+      solutionDetail: "Think SID's Do It With You service provided strategic guidance on testimonial collection, helped identify the most compelling customer stories, and worked with Jennifer's team to structure case studies that highlighted ROI. They received templates, storytelling frameworks, and hands-on support during implementation.",
       results: [
-        "Reduced fertilizer waste by 31% through variable rate application.",
-        "Increased average field productivity by 18%.",
-        "Saved approximately 120 hours per season on crop monitoring using drone imagery.",
-        "Gained confidence and empowerment in farming decisions.",
-        "Became a leader in her local farming community, teaching others about precision agriculture."
+        "Homepage conversion rate jumped from 2.1% to 3.4% (61% relative increase).",
+        "Email newsletter opt-ins increased by 38% thanks to gated case study downloads.",
+        "Sales team reported prospects mentioning specific customer stories during discovery calls.",
+        "Jennifer's team learned a repeatable framework for collecting and showcasing testimonials going forward."
       ],
-      quote: "I went from feeling overwhelmed to feeling like I have a competitive advantage. The data-driven approach transformed how I farm and gave me peace of mind."
+      quote: "The think SID team didn't just hand us templates - they taught us how to think about social proof strategically. We now have a system for continuously collecting farmer success stories and turning them into sales assets. Best investment we made this year."
     }
   },
   {
-    headline: "42% Pesticide Cost Reduction",
-    name: "Mike Rodriguez",
-    location: "Kansas",
-    photo: "https://images.unsplash.com/photo-1761839257144-297ce252742e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBmYXJtaW5nJTIwdGVjaG5vbG9neXxlbnwxfHx8fDE3NjIzNTExMDl8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    challenge: "Pest resistance made chemical control costly and ineffective on 800 acres.",
-    solution: "Implemented Integrated Pest Management; reduced chemicals, boosted beneficial insects.",
+    headline: "83% More Qualified Demos with Full-Service Package",
+    name: "David Kowalski",
+    location: "SoilHealth Innovations, Nebraska",
+    photo: "https://images.unsplash.com/photo-1629507208649-70919ca33793?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXNpbmVzc21hbiUyMHByb2Zlc3Npb25hbCUyMHBvcnRyYWl0fGVufDF8fHx8MTc2MjMxODYzOXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    challenge: "No time to collect testimonials or build social proof infrastructure themselves.",
+    solution: "Think SID's Done For You service handled everything from testimonial collection to deployment.",
     metrics: [
-      "67% Beneficial Insect Increase",
-      "42% Pesticide Cost Savings"
+      "83% Increase in Demo Requests",
+      "52% Shorter Sales Cycles"
     ],
     fullStory: {
-      farmContext: "800 acres | Wheat & Soybeans | KS",
-      challengeDetail: "Mike Rodriguez, who manages an 800-acre wheat and soybean operation, was spending thousands annually on pesticides. Chemical resistance meant his pest control became increasingly expensive and less effective. He also sought to reduce his reliance on harsh chemicals and improve environmental impact.",
-      solutionDetail: "Mike implemented our Integrated Pest Management Program. This comprehensive approach combined biological controls, strategic crop rotation, and targeted chemical applications. Pesticide use was only initiated when necessary, based on precise scouting data.",
+      farmContext: "Regenerative Agriculture Consulting | NE",
+      challengeDetail: "David Kowalski founded SoilHealth Innovations to help farmers transition to regenerative practices, but his small team was overwhelmed. They had no marketing bandwidth to properly showcase customer wins, and their website featured outdated, generic content. Prospects often asked for 'proof it works' before committing to $15K+ consulting packages.",
+      solutionDetail: "Think SID's Done For You service took the entire burden off David's team. They conducted video interviews with SoilHealth's top customers, extracted compelling metrics, crafted data-driven case studies, designed custom social proof elements, and deployed everything on the website - all within 6 weeks.",
       results: [
-        "Cut pesticide costs by 42% in the first year.",
-        "Reduced chemical applications from 8 per season to 3.",
-        "Improved beneficial insect populations by 67% according to field surveys.",
-        "Maintained or increased crop yields while reducing input costs.",
-        "Significantly reduced environmental footprint through sustainable pest management."
+        "Demo requests increased by 83% in the first quarter after launch.",
+        "Sales cycle shortened by 52% because prospects arrived already convinced of ROI.",
+        "Customer acquisition cost dropped 29% due to higher conversion rates.",
+        "David's team gained 15+ hours per week previously spent explaining 'why regenerative ag works' - now the website does that job.",
+        "Case study page became the second-most visited page on the entire website."
       ],
-      quote: "I was skeptical about reducing pesticide use, but the IPM program actually worked better than my old approach. My costs went down and my yields went up. It's a win-win."
+      quote: "I couldn't believe how hands-off this was. Think SID interviewed our customers, wrote the stories, designed everything, and even handled the technical deployment. We went from zero social proof to a conversion machine in 6 weeks. The ROI was immediate and measurable."
     }
   }
 ];
 
-const sampleHTMLCode = `<!-- DIY Social Proof Carousel -->
-<div class="testimonial-carousel">
-  <div class="testimonial-card">
-    <div class="stars">★★★★★</div>
-    <p class="quote">
-      "Since switching to organic fertilizer, 
-      our yield increased 25% while reducing 
-      costs. Best decision we've made."
+const sampleHTMLCode = `<!-- Social Proof Carousel - Paste anywhere on your site -->
+<div id="sp-carousel" style="max-width:600px;margin:0 auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+  <div class="sp-slide">
+    <div style="color:#ffc107;font-size:24px;margin-bottom:12px">★★★★★</div>
+    <p style="font-size:18px;color:#333;margin-bottom:16px;line-height:1.6">
+      "Yield up 23%, costs down $45/acre. This organic program transformed our farm."
     </p>
-    <div class="author">
-      <strong>John Peterson</strong>
-      <span>Peterson Family Farm</span>
+    <div style="display:flex;align-items:center;gap:12px">
+      <img src="farmer.jpg" style="width:48px;height:48px;border-radius:50%;object-fit:cover" alt="Farmer">
+      <div>
+        <strong style="display:block;color:#333">John Anderson</strong>
+        <span style="color:#666;font-size:14px">500-acre Corn Farm, Iowa</span>
+      </div>
     </div>
   </div>
 </div>
-
-<script src="testimonial-carousel.js"></script>`;
+<script src="https://cdn.thinkSID.com/carousel.min.js"></script>`;
 
 export const DIYLanding: React.FC<DIYLandingProps> = ({
   onNavigateHome,
@@ -246,20 +247,11 @@ export const DIYLanding: React.FC<DIYLandingProps> = ({
             {/* Preview on the right */}
             <div>
               <h3 className="mb-4 text-[#1c1c60]">The Result</h3>
-              <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-[#5b81ff]/20">
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i} className="text-2xl text-[#ebff82]">★</span>
-                  ))}
-                </div>
-                <p className="mb-6 text-lg text-[#1c1c60]">
-                  "Since switching to organic fertilizer, our yield increased 25% while reducing costs. Best decision we've made."
-                </p>
-                <div>
-                  <p className="text-[#1c1c60]">John Peterson</p>
-                  <p className="text-[#717182]">Peterson Family Farm</p>
-                </div>
-              </div>
+              <ImageWithFallback
+                src={carouselPreviewImage}
+                alt="Social proof carousel example showing farmer testimonials"
+                className="w-full rounded-lg shadow-lg"
+              />
             </div>
           </div>
         </div>

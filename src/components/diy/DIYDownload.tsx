@@ -61,7 +61,6 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
     } 
     // ✅ NEW: If no URL params but we have context data, use it (test mode)
     else if (hasContextData) {
-      console.log('📺 Test mode: Using context data');
       setIsTestMode(true);
       loadFromContext();
     }
@@ -79,10 +78,8 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
         throw new Error('No generation ID found');
       }
 
-      const kvKey = `diy_generation:${gid}`;
-
-      // Fetch generation data from KV store
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/kv_store_1da61fc8?key=eq.${kvKey}`, {
+      // Fetch generation data from diy_generations table
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/diy_generations?generation_id=eq.${gid}`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
@@ -95,18 +92,11 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
         throw new Error('Generation not found');
       }
 
-      const generation = data[0].value;
+      const generation = data[0];
       setGenerationData(generation);
 
-      // Mark as paid in KV store
-      const updatedValue = {
-        ...generation,
-        paid: true,
-        stripe_session_id: sid || 'manual',
-        updated_at: new Date().toISOString()
-      };
-
-      await fetch(`${SUPABASE_URL}/rest/v1/kv_store_1da61fc8?key=eq.${kvKey}`, {
+      // Mark as paid in diy_generations table
+      await fetch(`${SUPABASE_URL}/rest/v1/diy_generations?generation_id=eq.${gid}`, {
         method: 'PATCH',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -115,7 +105,9 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
           'Prefer': 'return=minimal'
         },
         body: JSON.stringify({
-          value: updatedValue
+          paid: true,
+          stripe_session_id: sid || 'manual',
+          updated_at: new Date().toISOString()
         })
       });
 
@@ -137,15 +129,15 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: data.customer_email,
-          name: data.customer_name,
+          email: data.vendor_email,
+          name: data.vendor_name,
           html_code: data.html_code,
           generation_id: data.generation_id
         })
       });
 
       setEmailSent(true);
-      toast.success(`Code sent to ${data.customer_email}!`);
+      toast.success(`Code sent to ${data.vendor_email}!`);
     } catch (error) {
       console.error('Email send error:', error);
       // Don't fail the whole page if email fails
@@ -184,8 +176,8 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
     setGenerationData({
       generation_id: contextGenerationId,
       html_code: contextHtmlCode,
-      customer_email: 'test@example.com',
-      customer_name: 'Test User'
+      vendor_email: 'test@example.com',
+      vendor_name: 'Test User'
     });
     
     setIsLoading(false);
@@ -226,7 +218,7 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
             {emailSent && (
               <span className="flex items-center justify-center gap-2">
                 <Mail className="h-5 w-5" />
-                Code sent to {generationData.customer_email}
+                Code sent to {generationData.vendor_email}
               </span>
             )}
           </p>

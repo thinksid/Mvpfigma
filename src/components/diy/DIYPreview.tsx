@@ -2,11 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Navigation } from '../Navigation';
 import { ProgressIndicator } from './ProgressIndicator';
 import { useDIY } from '../../contexts/DIYContext';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { diyProjectId, diyPublicAnonKey, getDIYSupabaseClient } from '../../utils/supabase/diy-client';
 import { Button } from '../ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
-import { getSupabaseClient } from '../../utils/supabase/client';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 
 interface DIYPreviewProps {
   onNavigateHome: () => void;
@@ -17,21 +25,16 @@ interface DIYPreviewProps {
   onNavigateToDIYCreate: () => void;
 }
 
-const SERVER_URL = `https://${projectId}.supabase.co/functions/v1/make-server-1da61fc8`;
+const SERVER_URL = `https://${diyProjectId}.supabase.co/functions/v1/make-server-1da61fc8`;
 
-// Stripe Buy Button configuration
-const STRIPE_BUY_BUTTON_ID = 'buy_btn_1SQInZ1epFGDXBkyWumuKai2';
+// Stripe configuration
 const STRIPE_PUBLISHABLE_KEY = 'pk_live_51SQ8RN1epFGDXBkybYp7vZzL0d73nEGxk7PHPsuX9trliPFpUTKFMkkTs0f1llKjZeYs9kDKHiHYfrpS1I2XwEE300ai8lQfJr';
+const STRIPE_PRICE_ID = 'price_1SQIpcGi1epFGDXBkypOPO9Tl'; // Replace with your actual price ID
 
-// Declare the custom element type for TypeScript
+// Declare Stripe global for TypeScript
 declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'stripe-buy-button': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
-        'buy-button-id': string;
-        'publishable-key': string;
-      };
-    }
+  interface Window {
+    Stripe: any;
   }
 }
 
@@ -43,7 +46,7 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
   onNavigateToDIYDownload,
   onNavigateToDIYCreate,
 }) => {
-  const sb = getSupabaseClient();
+  const sb = getDIYSupabaseClient();
   const { generationId: contextGenerationId, htmlCode: contextHtmlCode } = useDIY();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +55,14 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
   const [stripeLoaded, setStripeLoaded] = useState(false);
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
+  // Modal and form state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [vendorName, setVendorName] = useState('');
+  const [vendorEmail, setVendorEmail] = useState('');
+  const [isSavingVendorInfo, setIsSavingVendorInfo] = useState(false);
+  const [isVendorInfoSaved, setIsVendorInfoSaved] = useState(false);
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
+
   useEffect(() => {
     loadPreview();
     loadStripeScript();
@@ -59,13 +70,13 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
 
   const loadStripeScript = () => {
     // Check if script already exists
-    if (document.querySelector('script[src="https://js.stripe.com/v3/buy-button.js"]')) {
+    if (document.querySelector('script[src="https://js.stripe.com/v3/"]')) {
       setStripeLoaded(true);
       return;
     }
 
     const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3/buy-button.js';
+    script.src = 'https://js.stripe.com/v3/';
     script.async = true;
     script.onload = () => setStripeLoaded(true);
     script.onerror = () => {
@@ -80,73 +91,44 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
       setLoading(true);
       setError(null);
 
-      console.log('🔄 === LOADING PREVIEW ===');
-      console.log('Context generationId:', contextGenerationId);
-      console.log('Context htmlCode:', contextHtmlCode ? `${contextHtmlCode.length} chars` : 'null');
-
-      // ✅ FIX: Use HTML from context if available
+      // Use HTML from context if available
       if (contextHtmlCode && contextHtmlCode.trim().length > 0) {
-        console.log('✅ Using HTML code from context (skipping database query)');
         setHtmlCode(contextHtmlCode);
         setLoading(false);
         return;
       }
 
-      // ✅ FIX: Try to get generation_id from context first, then URL, then error
+      // Try to get generation_id from context first, then URL
       const urlParams = new URLSearchParams(window.location.search);
       const urlGenerationId = urlParams.get('id');
       const idToFetch = contextGenerationId || urlGenerationId;
 
-      console.log('Generation ID sources:');
-      console.log('  - Context:', contextGenerationId);
-      console.log('  - URL:', urlGenerationId);
-      console.log('  - Using:', idToFetch);
-
       if (!idToFetch) {
-        console.error('❌ No generation ID found');
         throw new Error('No generation ID found. Please create a carousel first.');
       }
 
-      // ✅ FALLBACK: Fetch from Supabase KV store directly (bypasses RLS issue with server)
-      console.log('🔄 Fetching from Supabase KV store...');
-      const kvKey = `diy_generation:${idToFetch}`;
-      console.log('🔑 KV Key:', kvKey);
-
+      // Fetch from diy_generations table
       const { data, error: dbError } = await sb
-        .from('kv_store_1da61fc8')
-        .select('value')
-        .eq('key', kvKey)
+        .from('diy_generations')
+        .select('*')
+        .eq('generation_id', idToFetch)
         .maybeSingle();
 
-      console.log('📥 Supabase query result:');
-      console.log('  - Error:', dbError);
-      console.log('  - Data:', data);
-
       if (dbError || !data) {
-        console.error('❌ Failed to load from Supabase KV store');
-        console.error('  - Error details:', dbError);
-        console.error('  - Data received:', data);
+        console.error('Failed to load carousel:', dbError);
         throw new Error('Carousel not found. Please generate a new one.');
       }
 
-      const generationData = data.value as any;
-      console.log('✅ Generation data loaded from Supabase');
-      console.log('📊 Data keys:', Object.keys(generationData));
-
-      if (!generationData.html_code) {
-        console.error('❌ HTML code not found in generation data');
-        console.error('Available keys:', Object.keys(generationData));
+      if (!data.html_code) {
+        console.error('HTML code not found in generation data');
         throw new Error('HTML code not found. Please wait for processing to complete.');
       }
 
-      console.log('✅ HTML code found:', generationData.html_code.length, 'chars');
-      setHtmlCode(generationData.html_code);
-      setTestimonialCount(generationData.testimonial_count || 0);
+      setHtmlCode(data.html_code);
+      setTestimonialCount(data.testimonial_count || 0);
       setLoading(false);
-      console.log('=== LOADING PREVIEW COMPLETE ===');
     } catch (err) {
-      console.error('💥 Error in loadPreview:', err);
-      console.error('Error details:', err instanceof Error ? err.message : 'Unknown error');
+      console.error('Error loading preview:', err);
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setLoading(false);
       toast.error('Failed to load carousel preview');
@@ -156,7 +138,6 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
   // Update iframe when HTML changes
   useEffect(() => {
     if (iframeRef.current && htmlCode) {
-      console.log('📺 Updating iframe with HTML code');
       const iframe = iframeRef.current;
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
       
@@ -167,6 +148,133 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
       }
     }
   }, [htmlCode]);
+
+  // Handle opening the checkout modal
+  const handleProceedToCheckout = () => {
+    setIsModalOpen(true);
+  };
+
+  // Validate form
+  const isFormValid = () => {
+    return (
+      vendorName.trim().length > 0 &&
+      vendorEmail.trim().length > 0 &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vendorEmail) // Basic email validation
+    );
+  };
+
+  // Save vendor info to database before allowing Stripe checkout
+  const handleSaveVendorInfo = async () => {
+    if (!isFormValid()) {
+      toast.error('Please fill in all fields with valid information');
+      return;
+    }
+
+    // Get generation ID from context or URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlGenerationId = urlParams.get('id');
+    const generationId = contextGenerationId || urlGenerationId;
+
+    if (!generationId) {
+      console.error('❌ No generation ID available');
+      console.error('  - Context generation ID:', contextGenerationId);
+      console.error('  - URL generation ID:', urlGenerationId);
+      toast.error('Generation ID not found. Please try again.');
+      return;
+    }
+
+    setIsSavingVendorInfo(true);
+
+    try {
+      console.log('💾 Saving vendor info...');
+      console.log('  - Generation ID:', generationId);
+      console.log('  - Vendor Name:', vendorName);
+      console.log('  - Vendor Email:', vendorEmail);
+
+      const response = await fetch(`${SERVER_URL}/diy/update-vendor`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${diyPublicAnonKey}`,
+        },
+        body: JSON.stringify({
+          generation_id: generationId,
+          vendor_name: vendorName,
+          vendor_email: vendorEmail,
+        }),
+      }).catch(err => {
+        console.error('Network error details:', err);
+        throw new Error(`Network error: ${err.message}`);
+      });
+
+      const data = await response.json();
+
+      console.log('📡 Server response:', data);
+      console.log('📡 Response status:', response.status);
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to save vendor information');
+      }
+
+      toast.success('Information saved! You can now proceed to checkout.');
+      
+      setIsSavingVendorInfo(false);
+      setIsVendorInfoSaved(true);
+      
+    } catch (error) {
+      console.error('❌ Error saving vendor info:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save information');
+      setIsSavingVendorInfo(false);
+    }
+  };
+
+  // Handle Stripe Checkout redirect
+  const handleStripeCheckout = async () => {
+    // Get generation ID from context or URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlGenerationId = urlParams.get('id');
+    const generationId = contextGenerationId || urlGenerationId;
+
+    if (!generationId) {
+      toast.error('Generation ID not found. Please try again.');
+      return;
+    }
+
+    setIsProcessingCheckout(true);
+
+    try {
+      console.log('🛒 Creating Stripe Checkout Session...');
+      console.log('  - Generation ID:', generationId);
+
+      const response = await fetch(`${SERVER_URL}/stripe/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${diyPublicAnonKey}`,
+        },
+        body: JSON.stringify({
+          generation_id: generationId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success || !data.url) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      console.log('✅ Checkout Session created successfully');
+      console.log('  - Session ID:', data.session_id);
+      console.log('  - Redirecting to:', data.url);
+
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('❌ Error creating checkout session:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to start checkout');
+      setIsProcessingCheckout(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -280,21 +388,117 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
             Go Back
           </Button>
 
-          {/* Stripe Buy Button */}
-          {stripeLoaded ? (
-            <div className="flex items-center justify-center">
-              <stripe-buy-button
-                buy-button-id={STRIPE_BUY_BUTTON_ID}
-                publishable-key={STRIPE_PUBLISHABLE_KEY}
-              />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-12 bg-[#5b81ff] text-white rounded-md">
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              Loading payment...
-            </div>
-          )}
+          {/* Proceed to Checkout Button */}
+          <Button
+            onClick={handleProceedToCheckout}
+            disabled={!stripeLoaded}
+            className="bg-[#5b81ff] text-white hover:bg-[#4a6fe0] h-12"
+          >
+            {stripeLoaded ? (
+              'Proceed to Checkout'
+            ) : (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Loading payment...
+              </>
+            )}
+          </Button>
         </div>
+
+        {/* Vendor Info Modal */}
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-[#1c1c60]">Complete Your Purchase</DialogTitle>
+              <DialogDescription>
+                Please provide your information to proceed with checkout.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              {/* Vendor Name Input */}
+              <div className="space-y-2">
+                <Label htmlFor="vendor-name">Your Name</Label>
+                <Input
+                  id="vendor-name"
+                  placeholder="John Smith"
+                  value={vendorName}
+                  onChange={(e) => setVendorName(e.target.value)}
+                  disabled={isSavingVendorInfo}
+                />
+              </div>
+
+              {/* Vendor Email Input */}
+              <div className="space-y-2">
+                <Label htmlFor="vendor-email">Email Address</Label>
+                <Input
+                  id="vendor-email"
+                  type="email"
+                  placeholder="john@example.com"
+                  value={vendorEmail}
+                  onChange={(e) => setVendorEmail(e.target.value)}
+                  disabled={isSavingVendorInfo}
+                />
+              </div>
+
+              {/* Info Note */}
+              <p className="text-xs text-gray-500">
+                We'll use this email to send your download link and receipt.
+              </p>
+
+              {/* Confirm Button */}
+              <div className="pt-2">
+                <Button
+                  onClick={handleSaveVendorInfo}
+                  disabled={!isFormValid() || isSavingVendorInfo || isVendorInfoSaved}
+                  className="w-full bg-[#5b81ff] text-white hover:bg-[#4a6fe0] disabled:bg-gray-300 disabled:text-gray-500"
+                >
+                  {isSavingVendorInfo ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : isVendorInfoSaved ? (
+                    <>
+                      <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Confirmed
+                    </>
+                  ) : (
+                    'Confirm'
+                  )}
+                </Button>
+              </div>
+
+              {/* Stripe Checkout Button */}
+              <div className="pt-2">
+                {isVendorInfoSaved ? (
+                  <Button
+                    onClick={handleStripeCheckout}
+                    disabled={isProcessingCheckout}
+                    className="w-full bg-[#ebff82] text-[#1c1c60] hover:bg-[#d9ed70] h-12"
+                  >
+                    {isProcessingCheckout ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        💳 Proceed to Payment
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="w-full h-12 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-sm border-2 border-gray-300 border-dashed">
+                    Click Confirm to enable checkout
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* What You'll Get */}
         <div className="bg-white rounded-lg p-8 shadow-md border border-gray-200 mb-12">

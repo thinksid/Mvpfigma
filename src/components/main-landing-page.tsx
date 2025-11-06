@@ -1,3 +1,4 @@
+import image_cff0762a6794db634da4baa2ef71750dfd161e77 from 'figma:asset/cff0762a6794db634da4baa2ef71750dfd161e77.png';
 import React from 'react';
 import { ArrowRight, TrendingUp, Wrench, Sparkles, Check, Linkedin, Twitter } from 'lucide-react';
 import { Button } from './ui/button';
@@ -402,29 +403,13 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
             {/* Column 1: Brand */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <img src={logo} alt="think SID" className="h-8 w-auto" />
+                <img src={image_cff0762a6794db634da4baa2ef71750dfd161e77} alt="think SID" className="h-8 w-auto" />
                 <span className="text-white text-xl font-semibold">think SID</span>
               </div>
               <p className="text-white/70 text-sm leading-relaxed mb-6">
                 Strategy  |  Innovation  |  Design
               </p>
               <div className="flex items-center gap-4">
-                <a
-                  href="https://www.linkedin.com/company/thinksid"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/50 hover:text-white transition-colors"
-                >
-                  <Linkedin className="w-6 h-6" />
-                </a>
-                <a
-                  href="https://twitter.com/thinksid"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/50 hover:text-white transition-colors"
-                >
-                  <Twitter className="w-6 h-6" />
-                </a>
               </div>
             </div>
 
@@ -458,21 +443,13 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
               <h3 className="text-white font-semibold mb-4">Company</h3>
               <div className="space-y-3">
                 <a
-                  href="https://thinksid.co"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-white/70 hover:text-white hover:underline transition-colors text-sm"
-                >
-                  About
-                </a>
-                <a
                   href="mailto:hello@thinksid.co"
                   className="block text-white/70 hover:text-white hover:underline transition-colors text-sm"
                 >
                   Contact
                 </a>
                 <a
-                  href="https://thinksid.co/privacy"
+                  href="https://drive.google.com/file/d/17A4h3190dkpvh68Yj0yVbZXs4Z8HJ3Dg/view"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block text-white/70 hover:text-white hover:underline transition-colors text-sm"
