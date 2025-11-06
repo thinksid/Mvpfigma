@@ -1,461 +1,272 @@
-import React, { useState, useEffect } from 'react';
-import { Navigation } from '../Navigation';
-import { ProgressIndicator } from './ProgressIndicator';
-import { useDIY } from '../../contexts/DIYContext';
-import { CarouselSlide } from '../../types/diy';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
-
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
+import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Card } from '../ui/card';
-import { Download, Copy, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Download, Copy, CheckCircle2, Mail } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 
+// ✅ YOUR REAL CREDENTIALS
+const SUPABASE_URL = 'https://dbojiegvkyvbmbivmppi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRib2ppZWd2a3l2Ym1iaXZtcHBpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4NDA0NDMsImV4cCI6MjA3NzQxNjQ0M30.vdXxqOosxNSzrt3c-VaQbeDuAltLtaP5Tj-UKx-sWQQ';
+const N8N_WEBHOOK = 'https://thinksid.app.n8n.cloud/webhook/send-carousel-code';
+
 interface DIYDownloadProps {
+  sessionId?: string;
+  generationId?: string;
   onNavigateHome: () => void;
   onNavigateToThermometer: () => void;
   onNavigateToDIY: () => void;
   onNavigateToPricing: () => void;
 }
 
-const SERVER_URL = `https://${projectId}.supabase.co/functions/v1/make-server-1da61fc8`;
-
 export const DIYDownload: React.FC<DIYDownloadProps> = ({
+  sessionId: propSessionId,
+  generationId: propGenerationId,
   onNavigateHome,
   onNavigateToThermometer,
   onNavigateToDIY,
   onNavigateToPricing,
 }) => {
-  const { generationId } = useDIY();
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [customerName, setCustomerName] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
-  const [htmlCode, setHtmlCode] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDownloaded, setIsDownloaded] = useState(false);
-  const [showForm, setShowForm] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(propSessionId || null);
+  const [generationId, setGenerationId] = useState<string | null>(propGenerationId || null);
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [generationData, setGenerationData] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
-    // Get session_id from URL
+    // Get parameters from URL if not provided via props
     const urlParams = new URLSearchParams(window.location.search);
-    const sessionIdParam = urlParams.get('session_id');
-    
-    if (sessionIdParam) {
-      setSessionId(sessionIdParam);
+    const urlSessionId = urlParams.get('session_id');
+    const urlGenerationId = urlParams.get('generation_id');
+
+    if (!sessionId && urlSessionId) {
+      setSessionId(urlSessionId);
+    }
+
+    if (!generationId && urlGenerationId) {
+      setGenerationId(urlGenerationId);
+    }
+
+    // If we have either sessionId or generationId, proceed
+    if (sessionId || urlSessionId || generationId || urlGenerationId) {
+      verifyPaymentAndLoadCode(urlSessionId || sessionId, urlGenerationId || generationId);
     } else {
-      // For testing without actual Stripe payment
-      console.log('No session_id found. Using test mode.');
+      toast.error('No payment session found');
+      onNavigateToDIY();
     }
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!customerName.trim() || !customerEmail.trim()) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(customerEmail)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-
+  const verifyPaymentAndLoadCode = async (sid: string | null, gid: string | null) => {
     try {
-      setIsSubmitting(true);
+      setIsLoading(true);
 
-      // Get generation_id (from context or we could fetch from Stripe session)
-      const idToUse = generationId || 'unknown';
+      if (!gid) {
+        throw new Error('No generation ID found');
+      }
 
-      // Fetch html_code from server
-      const fetchResponse = await fetch(`${SERVER_URL}/diy/${idToUse}`, {
-        method: 'GET',
+      const kvKey = `diy_generation:${gid}`;
+
+      // Fetch generation data from KV store
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/kv_store_1da61fc8?key=eq.${kvKey}`, {
         headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-        },
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
       });
 
-      if (!fetchResponse.ok) {
-        const errorData = await fetchResponse.json();
-        console.error('Error fetching generation:', errorData);
-        throw new Error('Failed to fetch your carousel code. Please contact support.');
+      const data = await response.json();
+      
+      if (!data || data.length === 0) {
+        throw new Error('Generation not found');
       }
 
-      const fetchResult = await fetchResponse.json();
-      const generationData = fetchResult.data;
+      const generation = data[0].value;
+      setGenerationData(generation);
 
-      if (!generationData || !generationData.html_code) {
-        throw new Error('HTML code not found. Please contact support.');
-      }
+      // Mark as paid in KV store
+      const updatedValue = {
+        ...generation,
+        paid: true,
+        stripe_session_id: sid || 'manual',
+        updated_at: new Date().toISOString()
+      };
 
-      // Get the HTML code that was generated by N8N
-      const htmlCodeFromDB = generationData.html_code;
+      await fetch(`${SUPABASE_URL}/rest/v1/kv_store_1da61fc8?key=eq.${kvKey}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          value: updatedValue
+        })
+      });
 
-      // Save customer info to server
-      try {
-        const saveResponse = await fetch(`${SERVER_URL}/diy/customer`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
-          body: JSON.stringify({
-            generation_id: idToUse,
-            customer_info: {
-              customer_name: customerName.trim(),
-              customer_email: customerEmail.trim().toLowerCase(),
-              stripe_session_id: sessionId || 'test_session',
-              paid: true,
-              downloaded_at: new Date().toISOString(),
-            },
-          }),
-        });
+      // Auto-send email
+      await sendCodeToEmail(generation);
 
-        if (!saveResponse.ok) {
-          const errorData = await saveResponse.json();
-          console.error('Error saving customer info:', errorData);
-          toast.error('Warning: Failed to save purchase record, but continuing...');
-        }
-      } catch (saveError) {
-        console.error('Error saving customer info:', saveError);
-        toast.error('Warning: Failed to save purchase record, but continuing...');
-      }
-
-      // Set the HTML code for display
-      setHtmlCode(htmlCodeFromDB);
-      setShowForm(false);
-      toast.success('Success! Your code is ready to download.');
     } catch (error) {
-      console.error('Error in handleSubmit:', error);
-      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred');
+      console.error('Verification error:', error);
+      toast.error('Failed to load your code. Please contact support.');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
+  };
+
+  const sendCodeToEmail = async (data: any) => {
+    try {
+      // ✅ Trigger N8N to send email
+      await fetch(N8N_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.customer_email,
+          name: data.customer_name,
+          html_code: data.html_code,
+          generation_id: data.generation_id
+        })
+      });
+
+      setEmailSent(true);
+      toast.success(`Code sent to ${data.customer_email}!`);
+    } catch (error) {
+      console.error('Email send error:', error);
+      // Don't fail the whole page if email fails
+    }
+  };
+
+  const handleCopyCode = () => {
+    if (!generationData) return;
+    
+    navigator.clipboard.writeText(generationData.html_code);
+    setCopied(true);
+    toast.success('Code copied to clipboard!');
+    
+    setTimeout(() => setCopied(false), 3000);
   };
 
   const handleDownload = () => {
-    if (!htmlCode) return;
-
-    // Create blob with HTML content
-    const blob = new Blob([htmlCode], { type: 'text/html' });
+    if (!generationData) return;
+    
+    const blob = new Blob([generationData.html_code], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
-
-    // Create download link
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `social-proof-carousel.html`;
-    document.body.appendChild(link);
-    link.click();
-
-    // Cleanup
-    document.body.removeChild(link);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `social-proof-carousel-${generationData.generation_id}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
-    setIsDownloaded(true);
-    toast.success('HTML file downloaded successfully!');
+    
+    toast.success('Code downloaded!');
   };
 
-  const handleCopyToClipboard = async () => {
-    if (!htmlCode) return;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-[#5b81ff] mx-auto mb-4" />
+          <p className="text-gray-600">Verifying your payment and preparing your code...</p>
+        </div>
+      </div>
+    );
+  }
 
-    try {
-      // Try modern Clipboard API first
-      await navigator.clipboard.writeText(htmlCode);
-      setCopied(true);
-      toast.success('Code copied to clipboard!');
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      // Fallback for browsers/contexts where Clipboard API is blocked
-      try {
-        // Create temporary textarea
-        const textarea = document.createElement('textarea');
-        textarea.value = htmlCode;
-        textarea.style.position = 'fixed';
-        textarea.style.top = '0';
-        textarea.style.left = '0';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        
-        // Select and copy
-        textarea.focus();
-        textarea.select();
-        const successful = document.execCommand('copy');
-        
-        // Cleanup
-        document.body.removeChild(textarea);
-        
-        if (successful) {
-          setCopied(true);
-          toast.success('Code copied to clipboard!');
-          setTimeout(() => setCopied(false), 2000);
-        } else {
-          throw new Error('Copy command failed');
-        }
-      } catch (fallbackErr) {
-        console.error('Failed to copy:', fallbackErr);
-        toast.error('Failed to copy code. Please manually select and copy the code.');
-      }
-    }
-  };
+  if (!generationData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-gray-600 mb-4">Unable to load your carousel code.</p>
+          <Button onClick={onNavigateHome}>Go Home</Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      {/* Navigation Bar */}
-      <Navigation
-        onNavigateHome={onNavigateHome}
-        onNavigateToThermometer={onNavigateToThermometer}
-        onNavigateToDIY={onNavigateToDIY}
-        onNavigateToPricing={onNavigateToPricing}
-        currentPage="diy"
-      />
-
-      {/* Spacer for fixed nav */}
-      <div style={{ height: '80px' }} />
-
-      {/* Progress Indicator */}
-      <ProgressIndicator currentStep={3} />
-
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        {showForm ? (
-          // Customer Info Form
-          <div>
-            {/* Success Banner */}
-            <div className="bg-gradient-to-br from-[#5b81ff] to-[#1c1c60] text-white rounded-xl p-8 mb-8 text-center">
-              <div className="w-20 h-20 bg-[#ebff82] rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-10 h-10 text-[#1c1c60]" />
-              </div>
-              <h3 className="text-3xl mb-3">Payment Successful! 🎉</h3>
-              <p className="text-white/90 text-lg">
-                Thank you for your purchase. Your carousel code is ready!
-              </p>
-            </div>
-
-            {/* Form Card */}
-            <Card className="p-8 shadow-lg border-2 border-gray-200">
-              <h3 className="text-2xl text-[#1c1c60] mb-6">
-                Enter Your Details to Download
-              </h3>
-              <p className="text-gray-600 mb-8">
-                We'll send you a copy of your code and keep you updated on new features.
-              </p>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="John Doe"
-                    required
-                    className="mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    placeholder="john@example.com"
-                    required
-                    className="mt-2"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    We'll email you a backup copy of your code
-                  </p>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-[#ebff82] text-[#1c1c60] hover:bg-[#e0f570] py-6 text-lg"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      Get My Code
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Card>
-
-            {/* Trust Indicators */}
-            <div className="mt-8 flex items-center justify-center gap-8 text-sm text-gray-500">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
-                <span>Secure Payment</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
-                <span>Instant Access</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
-                <span>Lifetime Updates</span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          // Download Section
-          <div>
-            {/* Success Message */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-8 mb-8 text-center">
-              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-3xl text-green-900 mb-3">
-                Your HTML Snippet is Ready!
-              </h3>
-              <p className="text-green-800">
-                Download the file or copy the code directly to your clipboard.
-              </p>
-            </div>
-
-            {/* Download Actions */}
-            <div className="grid md:grid-cols-2 gap-4 mb-8">
-              <Button
-                onClick={handleDownload}
-                className="bg-[#5b81ff] text-white hover:bg-[#4a6fe0] py-6 text-lg"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Download HTML File
-              </Button>
-              <Button
-                onClick={handleCopyToClipboard}
-                variant="outline"
-                className="py-6 text-lg border-2"
-              >
-                {copied ? (
-                  <>
-                    <CheckCircle2 className="w-5 h-5 mr-2 text-green-600" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-5 h-5 mr-2" />
-                    Copy to Clipboard
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Code Preview */}
-            <Card className="p-6 mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg text-[#1c1c60]">Code Preview</h4>
-                <span className="text-sm text-gray-500">
-                  {htmlCode?.length || 0} characters
-                </span>
-              </div>
-              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto max-h-96 overflow-y-auto">
-                <pre className="text-green-400 text-sm whitespace-pre-wrap break-words">
-                  <code>{htmlCode}</code>
-                </pre>
-              </div>
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-sm text-gray-500">
-                  Showing complete HTML code
-                </p>
-                <Button
-                  onClick={handleCopyToClipboard}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
-                  {copied ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4" />
-                      Copy Code
-                    </>
-                  )}
-                </Button>
-              </div>
-            </Card>
-
-            {/* Integration Instructions */}
-            <Card className="p-8 bg-gradient-to-br from-[#5b81ff]/5 to-[#ebff82]/10 border-2 border-[#5b81ff]/20">
-              <h4 className="text-xl text-[#1c1c60] mb-4">
-                📝 How to Use Your Code
-              </h4>
-              <ol className="space-y-3 text-gray-700">
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-[#5b81ff] text-white rounded-full flex items-center justify-center text-sm">
-                    1
-                  </span>
-                  <span>Download the HTML file or copy the code to your clipboard</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-[#5b81ff] text-white rounded-full flex items-center justify-center text-sm">
-                    2
-                  </span>
-                  <span>Paste the code into your website where you want the carousel to appear</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-[#5b81ff] text-white rounded-full flex items-center justify-center text-sm">
-                    3
-                  </span>
-                  <span>Customize the styling as needed to match your brand</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-[#5b81ff] text-white rounded-full flex items-center justify-center text-sm">
-                    4
-                  </span>
-                  <span>Test on mobile and desktop to ensure responsive behavior</span>
-                </li>
-              </ol>
-            </Card>
-
-            {/* Additional Actions */}
-            <div className="mt-8 flex items-center justify-center gap-4">
-              <Button
-                variant="outline"
-                onClick={onNavigateToDIY}
-                className="px-6"
-              >
-                Create Another Carousel
-              </Button>
-              <Button
-                variant="outline"
-                onClick={onNavigateHome}
-                className="px-6"
-              >
-                Back to Home
-              </Button>
-            </div>
-
-            {/* Download Confirmation */}
-            {isDownloaded && (
-              <div className="mt-6 text-center">
-                <p className="text-green-600 flex items-center justify-center gap-2">
-                  <CheckCircle2 className="w-5 h-5" />
-                  File downloaded successfully! Check your downloads folder.
-                </p>
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Success Header */}
+        <div className="text-center mb-8">
+          <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
+          <h1 className="text-3xl md:text-4xl text-[#1c1c60] mb-2">
+            Success! Your Code is Ready 🎉
+          </h1>
+          <p className="text-lg text-gray-600">
+            {emailSent && (
+              <span className="flex items-center justify-center gap-2">
+                <Mail className="h-5 w-5" />
+                Code sent to {generationData.customer_email}
+              </span>
             )}
+          </p>
+        </div>
+
+        {/* Code Display */}
+        <Card className="p-6 mb-6">
+          <h2 className="text-xl text-[#1c1c60] mb-4">Your HTML Code</h2>
+          <div className="relative">
+            <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm max-h-96">
+              <code>{generationData.html_code}</code>
+            </pre>
+            <Button
+              onClick={handleCopyCode}
+              className="absolute top-2 right-2"
+              size="sm"
+            >
+              {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? 'Copied!' : 'Copy'}
+            </Button>
           </div>
-        )}
+        </Card>
+
+        {/* Action Buttons */}
+        <div className="grid md:grid-cols-2 gap-4 mb-8">
+          <Button
+            onClick={handleCopyCode}
+            className="h-12 bg-[#5b81ff] hover:bg-[#4a6fd9]"
+          >
+            <Copy className="mr-2 h-5 w-5" />
+            Copy to Clipboard
+          </Button>
+          <Button
+            onClick={handleDownload}
+            variant="outline"
+            className="h-12"
+          >
+            <Download className="mr-2 h-5 w-5" />
+            Download as .html
+          </Button>
+        </div>
+
+        {/* Instructions */}
+        <Card className="p-6">
+          <h3 className="text-lg text-[#1c1c60] mb-4">How to Add to Your Website</h3>
+          <ol className="space-y-3 text-gray-700">
+            <li>
+              <strong>1. Copy the code above</strong>
+            </li>
+            <li>
+              <strong>2. Paste it into your website's HTML</strong>
+              <p className="text-sm text-gray-600 ml-4">Add it where you want the carousel to appear</p>
+            </li>
+            <li>
+              <strong>3. Save and publish your changes</strong>
+            </li>
+          </ol>
+          
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm text-gray-700">
+              <strong>💡 Tip:</strong> For WordPress, use a Custom HTML block. For Wix/Squarespace, use an Embed code element.
+            </p>
+          </div>
+        </Card>
       </div>
     </div>
   );
 };
+
+export default DIYDownload;

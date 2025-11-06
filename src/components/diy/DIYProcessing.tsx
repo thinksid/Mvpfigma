@@ -16,7 +16,6 @@ interface DIYProcessingProps {
   onNavigateToDIYCreate: () => void;
 }
 
-const SERVER_URL = `https://${projectId}.supabase.co/functions/v1/make-server-1da61fc8`;
 const WEBHOOK_URL = 'https://thinksid.app.n8n.cloud/webhook/diy-social-proof';
 
 const LOADING_MESSAGES = [
@@ -52,6 +51,8 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
   }, []);
 
   const processTestimonials = async () => {
+    const SERVER_URL = `https://${projectId}.supabase.co/functions/v1/make-server-1da61fc8`;
+    
     try {
       // Start progress bar animation
       const progressInterval = setInterval(() => {
@@ -85,6 +86,8 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
         }))
       };
 
+      console.log('Calling N8N webhook with testimonials:', requestBody);
+
       // Make webhook call
       const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
@@ -99,13 +102,14 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
       }
 
       const data: GenerationResponse = await response.json();
+      console.log('Received response from N8N:', data);
 
       // Validate response
       if (!data.generation_id || !data.html_code || !data.preview_data) {
         throw new Error('Invalid response from server');
       }
 
-      // Save to server KV store
+      // Save to server using the existing endpoint (which uses service role key)
       try {
         const saveResponse = await fetch(`${SERVER_URL}/diy/save`, {
           method: 'POST',
@@ -116,18 +120,26 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
           body: JSON.stringify({
             generation_id: data.generation_id,
             data: {
+              generation_id: data.generation_id,
               html_code: data.html_code,
               preview_data: data.preview_data,
               testimonial_count: data.testimonial_count,
+              paid: false,
+              customer_email: null,
+              customer_name: null,
+              stripe_session_id: null,
               created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
             },
           }),
         });
 
         if (!saveResponse.ok) {
           const errorData = await saveResponse.json();
-          console.error('Error saving to database:', errorData);
+          console.error('Error saving to server:', errorData);
           toast.error('Warning: Failed to save to database, but continuing...');
+        } else {
+          console.log('Successfully saved to server');
         }
       } catch (saveError) {
         console.error('Error saving to database:', saveError);
