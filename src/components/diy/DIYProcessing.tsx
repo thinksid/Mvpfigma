@@ -34,7 +34,7 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
   onNavigateToDIYPreview,
   onNavigateToDIYCreate,
 }) => {
-  const { testimonials, setGenerationId, setPreviewData } = useDIY();
+  const { testimonials, setGenerationId, setPreviewData, setHtmlCode } = useDIY();
   const [progress, setProgress] = useState(0);
   const [currentMessage, setCurrentMessage] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -137,6 +137,9 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
       
       console.log('🔄 Setting preview data in context:', data.preview_data);
       setPreviewData(data.preview_data);
+
+      console.log('🔄 Setting HTML code in context:', data.html_code);
+      setHtmlCode(data.html_code);
 
       console.log('✅ Context updated successfully');
 

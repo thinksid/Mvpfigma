@@ -9,6 +9,8 @@ interface DIYContextType {
   setGenerationId: (id: string | null) => void;
   previewData: CarouselSlide[] | null;
   setPreviewData: (data: CarouselSlide[] | null) => void;
+  htmlCode: string | null;
+  setHtmlCode: (html: string | null) => void;
 }
 
 // Create the context with undefined default value
@@ -23,6 +25,7 @@ export const DIYProvider: React.FC<DIYProviderProps> = ({ children }) => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [generationId, setGenerationId] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<CarouselSlide[] | null>(null);
+  const [htmlCode, setHtmlCode] = useState<string | null>(null);
 
   const value: DIYContextType = {
     testimonials,
@@ -31,6 +34,8 @@ export const DIYProvider: React.FC<DIYProviderProps> = ({ children }) => {
     setGenerationId,
     previewData,
     setPreviewData,
+    htmlCode,
+    setHtmlCode,
   };
 
   return <DIYContext.Provider value={value}>{children}</DIYContext.Provider>;

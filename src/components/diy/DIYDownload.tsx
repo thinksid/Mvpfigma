@@ -3,6 +3,8 @@ import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Loader2, Download, Copy, CheckCircle2, Mail } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
+import { useDIY } from '../../contexts/DIYContext';
+import { Navigation } from '../Navigation';
 
 // ✅ YOUR REAL CREDENTIALS
 const SUPABASE_URL = 'https://dbojiegvkyvbmbivmppi.supabase.co';
@@ -26,8 +28,10 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
   onNavigateToDIY,
   onNavigateToPricing,
 }) => {
+  const { generationId: contextGenerationId, htmlCode: contextHtmlCode } = useDIY();
   const [sessionId, setSessionId] = useState<string | null>(propSessionId || null);
   const [generationId, setGenerationId] = useState<string | null>(propGenerationId || null);
+  const [isTestMode, setIsTestMode] = useState(false);
   
   const [isLoading, setIsLoading] = useState(true);
   const [generationData, setGenerationData] = useState<any>(null);
@@ -48,10 +52,20 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
       setGenerationId(urlGenerationId);
     }
 
-    // If we have either sessionId or generationId, proceed
+    // ✅ NEW: Check if we have context data (test mode / dev skip)
+    const hasContextData = contextGenerationId && contextHtmlCode;
+    
+    // If we have either sessionId or generationId from URL, proceed with payment verification
     if (sessionId || urlSessionId || generationId || urlGenerationId) {
       verifyPaymentAndLoadCode(urlSessionId || sessionId, urlGenerationId || generationId);
-    } else {
+    } 
+    // ✅ NEW: If no URL params but we have context data, use it (test mode)
+    else if (hasContextData) {
+      console.log('📺 Test mode: Using context data');
+      setIsTestMode(true);
+      loadFromContext();
+    }
+    else {
       toast.error('No payment session found');
       onNavigateToDIY();
     }
@@ -162,6 +176,19 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
     URL.revokeObjectURL(url);
     
     toast.success('Code downloaded!');
+  };
+
+  const loadFromContext = () => {
+    if (!contextGenerationId || !contextHtmlCode) return;
+    
+    setGenerationData({
+      generation_id: contextGenerationId,
+      html_code: contextHtmlCode,
+      customer_email: 'test@example.com',
+      customer_name: 'Test User'
+    });
+    
+    setIsLoading(false);
   };
 
   if (isLoading) {
