@@ -9,6 +9,7 @@ import { getSupabaseClient } from '../../utils/supabase/client';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { toast } from 'sonner@2.0.3';
 import { CarouselSlide } from '../../types/diy';
+import { useDIY } from '../../contexts/DIYContext';
 
 // ✅ YOUR REAL CREDENTIALS
 const SUPABASE_URL = 'https://dbojiegvkyvbmbivmppi.supabase.co';
@@ -51,9 +52,14 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
   onNavigateToDIYCreate,
 }) => {
   const sb = getSupabaseClient();
-  const [generationId, setGenerationId] = useState<string | null>(propGenerationId || null);
+  const { generationId: contextGenerationId, previewData: contextPreviewData } = useDIY();
   
-  const [previewData, setPreviewData] = useState<CarouselSlide[] | null>(null);
+  // ✅ FIX: Try context first, then props, then URL
+  const [generationId, setGenerationId] = useState<string | null>(
+    propGenerationId || contextGenerationId || null
+  );
+  
+  const [previewData, setPreviewData] = useState<CarouselSlide[] | null>(contextPreviewData);
   const [customerEmail, setCustomerEmail] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>('');
   const [emailCaptured, setEmailCaptured] = useState(false);
@@ -63,16 +69,27 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
   const [stripeLoaded, setStripeLoaded] = useState(false);
 
   useEffect(() => {
+    // ✅ DEBUG: Log what we have
+    console.log('=== DIY PREVIEW INIT ===');
+    console.log('Context generationId:', contextGenerationId);
+    console.log('Context previewData:', contextPreviewData);
+    console.log('Prop generationId:', propGenerationId);
+    console.log('Final generationId:', generationId);
+    
     // Try to get generation_id from URL query params if not provided via props
     if (!generationId) {
       const urlParams = new URLSearchParams(window.location.search);
       const urlGenerationId = urlParams.get('id');
+      console.log('URL generationId:', urlGenerationId);
       if (urlGenerationId) {
         setGenerationId(urlGenerationId);
       } else {
+        console.log('❌ No generationId found - redirecting to create');
         onNavigateToDIYCreate();
         return;
       }
+    } else {
+      console.log('✅ GenerationId found:', generationId);
     }
   }, []);
 

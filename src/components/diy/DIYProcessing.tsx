@@ -53,6 +53,10 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
 
   const processTestimonials = async () => {
     try {
+      console.log('🚀 ========== DIY PROCESSING START ==========');
+      console.log('📊 Testimonials:', testimonials);
+      console.log('🔗 Webhook URL:', WEBHOOK_URL);
+      
       // Start progress bar animation
       const progressInterval = setInterval(() => {
         setProgress(prev => {
@@ -85,7 +89,10 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
         }))
       };
 
+      console.log('📤 Sending to N8N:', JSON.stringify(requestBody, null, 2));
+
       // ✅ Call N8N webhook - it handles everything (generation + save to Supabase)
+      console.log('⏳ Calling N8N webhook...');
       const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: {
@@ -94,37 +101,66 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
         body: JSON.stringify(requestBody),
       });
 
+      console.log('📥 N8N Response Status:', response.status, response.statusText);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ N8N Error Response:', errorText);
         throw new Error(`Webhook request failed: ${response.statusText}`);
       }
 
       const data: GenerationResponse = await response.json();
+      console.log('✅ N8N Response Data:', JSON.stringify(data, null, 2));
 
       // Validate response
       if (!data.generation_id || !data.html_code || !data.preview_data) {
+        console.error('❌ Invalid response - missing fields:', {
+          has_generation_id: !!data.generation_id,
+          has_html_code: !!data.html_code,
+          has_preview_data: !!data.preview_data,
+          actual_data: data
+        });
         throw new Error('Invalid response from server');
       }
 
+      console.log('✅ Response validated successfully');
+      console.log('🆔 Generation ID:', data.generation_id);
+      console.log('📝 HTML Code length:', data.html_code.length);
+      console.log('📊 Preview data:', data.preview_data);
+
       // ✅ N8N already saved to Supabase - no extra save needed!
-      console.log('Carousel generated successfully:', data.generation_id);
+      console.log('💾 N8N has saved to Supabase with key: diy_generation:' + data.generation_id);
 
       // Store in context
+      console.log('🔄 Setting generation ID in context:', data.generation_id);
       setGenerationId(data.generation_id);
+      
+      console.log('🔄 Setting preview data in context:', data.preview_data);
       setPreviewData(data.preview_data);
+
+      console.log('✅ Context updated successfully');
 
       // Complete progress
       clearInterval(progressInterval);
       clearInterval(messageInterval);
       setProgress(100);
 
+      console.log('📊 Progress set to 100%');
+
       // Wait a moment to show 100% completion
       setTimeout(() => {
+        console.log('🎯 Navigating to preview page...');
         setIsProcessing(false);
         onNavigateToDIYPreview();
+        console.log('✅ Navigation triggered');
+        console.log('========== DIY PROCESSING COMPLETE ==========');
       }, 1000);
 
     } catch (err) {
-      console.error('Error processing testimonials:', err);
+      console.error('💥 ========== DIY PROCESSING ERROR ==========');
+      console.error('Error:', err);
+      console.error('Error message:', err instanceof Error ? err.message : 'Unknown error');
+      console.error('Error stack:', err instanceof Error ? err.stack : 'No stack');
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setIsProcessing(false);
       toast.error('Failed to generate carousel. Please try again.');
