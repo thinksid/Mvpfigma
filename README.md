@@ -1,7 +1,7 @@
 
-  # Website Assessment Tool
+  # social.thinksid
 
-  This is a code bundle for Website Assessment Tool. The original project is available at https://www.figma.com/design/XJQdbLn2XynHdvoOIww4Ft/Website-Assessment-Tool.
+  This is a code bundle for social.thinksid. The original project is available at https://www.figma.com/design/XJQdbLn2XynHdvoOIww4Ft/social.thinksid.
 
   ## Running the code
 

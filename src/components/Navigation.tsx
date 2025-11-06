@@ -1,3 +1,5 @@
+import image_0eca6e56ffd071e0712e1f4103ca278166c4ce0d from 'figma:asset/0eca6e56ffd071e0712e1f4103ca278166c4ce0d.png';
+import image_7133fcd99e328bbf1529af7b613cd3661c4d6a46 from 'figma:asset/7133fcd99e328bbf1529af7b613cd3661c4d6a46.png';
 import React, { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
 import { Button } from './ui/button';
@@ -46,8 +48,8 @@ export const Navigation: React.FC<NavigationProps> = ({
           onClick={onNavigateHome}
           className="flex items-center gap-3 hover:opacity-80 transition-opacity"
         >
-          <img src={logo} alt="Think SID Logo" className="h-12 w-auto" />
-          <span className="text-[#1c1c60] text-xl font-semibold">think SID</span>
+          <img src={image_7133fcd99e328bbf1529af7b613cd3661c4d6a46} alt="Think SID Logo" className="h-12 w-auto" />
+          <img src={image_0eca6e56ffd071e0712e1f4103ca278166c4ce0d} alt="think SID" className="h-8 w-auto" />
         </button>
 
         {/* Right: Desktop Navigation */}
@@ -60,7 +62,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 : 'text-[#475569] hover:text-[#1c1c60] hover:underline'
             }`}
           >
-            Thermometer
+            Social Proof Thermometer
           </button>
           <button
             onClick={onNavigateToDIY}
@@ -70,7 +72,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 : 'text-[#475569] hover:text-[#1c1c60] hover:underline'
             }`}
           >
-            DIY Tool
+            DIY Social Proof Carousel
           </button>
           <button
             onClick={onNavigateToPricing}

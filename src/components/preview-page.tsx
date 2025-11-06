@@ -1,11 +1,13 @@
+import image_b39e4115ae7b778c9fc0bfd87b5c38de758b79f8 from 'figma:asset/b39e4115ae7b778c9fc0bfd87b5c38de758b79f8.png';
+import image_3b7c8b2c143eb1817b070c9b3275059b4018cdd8 from 'figma:asset/3b7c8b2c143eb1817b070c9b3275059b4018cdd8.png';
 import React, { useState } from 'react';
 import { AlertTriangle, Lock, X, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Navigation } from './Navigation';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from './ui/drawer';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose } from './ui/drawer';
 import { Progress } from './ui/progress';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -120,6 +122,12 @@ export function PreviewPage({
 
       const responseData = await response.json();
 
+      console.log('=== UNLOCK RESPONSE DATA ===');
+      console.log('Full response:', responseData);
+      console.log('Full report:', responseData.full_report);
+      console.log('Scores:', responseData.full_report?.scores);
+      console.log('Findings:', responseData.full_report?.findings);
+
       // Close modal and navigate to report page
       handleCloseModal();
       onUnlockSuccess(responseData);
@@ -131,16 +139,9 @@ export function PreviewPage({
     }
   };
 
-  const modalContent = (
+  // Form content (shared between Dialog and Drawer)
+  const formContent = (
     <div className="space-y-6">
-      <div>
-        <DialogTitle className="mb-2" style={{ fontSize: '24px', color: '#1c1c60' }}>
-          Unlock Your Full Report
-        </DialogTitle>
-        <p className="text-[#64748B]" style={{ fontSize: '14px' }}>
-          Enter your details to access the complete analysis and recommendations
-        </p>
-      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name Input */}
@@ -228,83 +229,81 @@ export function PreviewPage({
 
       <div className="max-w-5xl mx-auto px-6 py-12 space-y-8">
         {/* SECTION 1: SCORE CARD (Hero) */}
-        <div className="bg-[#1c1c60] rounded-xl shadow-lg p-8 md:p-12 text-center">
-          <h1 className="text-white mb-6">Your Social Proof Score</h1>
-
-          {/* Score Display */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="text-white" style={{ fontSize: '64px', lineHeight: '1' }}>
-              {data.score_total}
-            </div>
-            <div className="bg-[#ebff82] text-[#1c1c60] rounded-lg px-6 py-4" style={{ fontSize: '40px', lineHeight: '1' }}>
-              {data.letter}
-            </div>
+        <div className="bg-[#1c1c60] rounded-xl shadow-lg p-8 md:p-12 text-center relative overflow-hidden">
+          {/* Background Image with Transparency */}
+          <div className="absolute inset-0 opacity-20 pointer-events-none">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1722336450188-8d3fb3a5b2cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRyYW5zcGFyZW50JTIwZ3JhZGllbnR8ZW58MXx8fHwxNzYyMzg1Njk4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+              alt=""
+              className="w-full h-full object-cover"
+            />
           </div>
 
-          {/* Progress Bar */}
-          <div className="max-w-md mx-auto mb-6">
-            <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#ebff82] rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${data.score_total}%` }}
-              />
-            </div>
-          </div>
+          <div className="relative z-10">
+            <h1 className="text-white mb-6">Your Social Proof Score</h1>
 
-          {/* Preview Headline */}
-          <p className="text-white/90 max-w-2xl mx-auto" style={{ fontSize: '16px' }}>
-            {data.preview.headline}
-          </p>
-        </div>
-
-        {/* SECTION 2: TOP FINDINGS CARD */}
-        <div className="bg-white border-2 border-[#E2E8F0] rounded-xl p-6 md:p-8">
-          <h2 className="text-[#1c1c60] mb-6">Top Areas of Concern</h2>
-
-          {/* Findings List */}
-          <div className="space-y-4 mb-6">
-            {data.preview.top3.map((finding, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <AlertTriangle className="h-6 w-6 text-[#F59E0B] flex-shrink-0 mt-0.5" />
-                <p className="text-[#475569]" style={{ fontSize: '16px' }}>
-                  {finding}
-                </p>
+            {/* Score Display */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="text-white" style={{ fontSize: '64px', lineHeight: '1' }}>
+                {data.score_total}
               </div>
-            ))}
-          </div>
+              <div className="bg-[#ebff82] text-[#1c1c60] rounded-lg px-6 py-4" style={{ fontSize: '40px', lineHeight: '1' }}>
+                {data.letter}
+              </div>
+            </div>
 
-          {/* Locked Indicator */}
-          <div className="bg-[#F8F9FA] border-2 border-dashed border-[#E2E8F0] rounded-lg p-6 flex items-center justify-center gap-2">
-            <Lock className="h-5 w-5 text-[#94A3B8]" />
-            <p className="text-[#64748B]" style={{ fontSize: '14px' }}>
-              Unlock the full report to see detailed findings and recommendations
+            {/* Progress Bar */}
+            <div className="max-w-md mx-auto mb-6">
+              <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#ebff82] rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${data.score_total}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Preview Headline */}
+            <p className="text-white/90 max-w-2xl mx-auto" style={{ fontSize: '16px' }}>
+              {data.preview.headline}
             </p>
           </div>
         </div>
 
-        {/* SECTION 3: UNLOCK CTA CARD */}
-        <div className="bg-white border-2 border-[#5b81ff] rounded-xl p-6 md:p-10">
+        {/* SECTION 2: UNLOCK CTA CARD */}
+        <div className="bg-[rgb(255,255,255)] border border-[#1c1c60] rounded-xl p-6 md:p-10">
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Image Preview - Hidden on mobile */}
-            <div className="hidden md:block md:w-1/5 flex-shrink-0">
-              <div className="relative">
+            <div className="hidden md:block md:w-1/4 flex-shrink-0">
+              <div className="relative w-full">
                 <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1661237473026-83b6f4ea5706?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkb2N1bWVudCUyMHJlcG9ydCUyMHByZXZpZXd8ZW58MXx8fHwxNzYyMzY0NjM2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                  src={image_b39e4115ae7b778c9fc0bfd87b5c38de758b79f8}
                   alt="Report preview"
-                  className="rounded-lg shadow-lg transform -rotate-3"
+                  className="rounded-lg shadow-lg w-full"
                 />
-                <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1661237473026-83b6f4ea5706?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkb2N1bWVudCUyMHJlcG9ydCUyMHByZXZpZXd8ZW58MXx8fHwxNzYyMzY0NjM2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                  alt="Report preview"
-                  className="absolute top-2 left-2 rounded-lg shadow-xl transform rotate-2 opacity-80"
-                />
+                <div className="absolute -bottom-4 -right-4 w-2/3 grid grid-cols-3 gap-1">
+                  <ImageWithFallback
+                    src={image_3b7c8b2c143eb1817b070c9b3275059b4018cdd8}
+                    alt="Report preview"
+                    className="rounded shadow-md col-span-1"
+                  />
+                  <ImageWithFallback
+                    src={image_3b7c8b2c143eb1817b070c9b3275059b4018cdd8}
+                    alt="Report preview"
+                    className="rounded shadow-md col-span-1"
+                  />
+                  <ImageWithFallback
+                    src={image_3b7c8b2c143eb1817b070c9b3275059b4018cdd8}
+                    alt="Report preview"
+                    className="rounded shadow-md col-span-1"
+                  />
+                </div>
               </div>
             </div>
 
             {/* Text Content */}
             <div className="flex-1 text-center md:text-left">
-              <h2 className="text-[#1c1c60] mb-3">Get Your Report For Free</h2>
-              <p className="text-[#64748B]" style={{ fontSize: '16px', lineHeight: '1.6' }}>
+              <h2 className="text-[rgb(28,28,96)] mb-3">Get Your Report For Free</h2>
+              <p className="text-[#1c1c60]" style={{ fontSize: '16px', lineHeight: '1.6' }}>
                 Unlock detailed insights, evidence-based scores for each dimension, and actionable recommendations to improve your website
               </p>
             </div>
@@ -320,6 +319,31 @@ export function PreviewPage({
             </div>
           </div>
         </div>
+
+        {/* SECTION 3: TOP FINDINGS CARD */}
+        <div className="bg-white border border-[#1c1c60] rounded-xl p-6 md:p-8">
+          <h2 className="text-[#1c1c60] mb-6 font-bold">A few takeaways from the full report</h2>
+
+          {/* Findings List */}
+          <div className="space-y-4 mb-6">
+            {data.preview.top3.map((finding, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <div className="h-2 w-2 rounded-full bg-[#5b81ff] flex-shrink-0 mt-2" />
+                <p className="text-[#475569]" style={{ fontSize: '18px' }}>
+                  {finding}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Locked Indicator */}
+          <div className="bg-[#F8F9FA] border-2 border-dashed border-[#E2E8F0] rounded-lg p-6 flex items-center justify-center gap-2">
+            <Lock className="h-5 w-5 text-[#94A3B8]" />
+            <p className="text-[#64748B]" style={{ fontSize: '14px' }}>
+              Unlock the full report to see detailed findings and recommendations
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Modal/Drawer for Email Capture */}
@@ -327,6 +351,12 @@ export function PreviewPage({
         <Drawer open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DrawerContent className="max-h-[90vh] px-6 pb-8">
             <DrawerHeader className="relative px-0 pt-6">
+              <DrawerTitle className="mb-2" style={{ fontSize: '24px', color: '#1c1c60' }}>
+                Unlock Your Full Report
+              </DrawerTitle>
+              <DrawerDescription className="text-[#64748B]" style={{ fontSize: '14px' }}>
+                Enter your details to access the complete analysis and recommendations
+              </DrawerDescription>
               <DrawerClose asChild>
                 <button
                   className="absolute right-0 top-0 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100"
@@ -337,7 +367,7 @@ export function PreviewPage({
                 </button>
               </DrawerClose>
             </DrawerHeader>
-            {modalContent}
+            {formContent}
           </DrawerContent>
         </Drawer>
       ) : (
@@ -350,7 +380,15 @@ export function PreviewPage({
               <X className="h-6 w-6 text-[#94A3B8] hover:text-[#475569]" />
               <span className="sr-only">Close</span>
             </button>
-            {modalContent}
+            <DialogHeader>
+              <DialogTitle className="mb-2" style={{ fontSize: '24px', color: '#1c1c60' }}>
+                Unlock Your Full Report
+              </DialogTitle>
+              <DialogDescription className="text-[#64748B]" style={{ fontSize: '14px' }}>
+                Enter your details to access the complete analysis and recommendations
+              </DialogDescription>
+            </DialogHeader>
+            {formContent}
           </DialogContent>
         </Dialog>
       )}

@@ -1,3 +1,4 @@
+import image_17da7883e3dbcea089c2c87883548245f7b8aa61 from 'figma:asset/17da7883e3dbcea089c2c87883548245f7b8aa61.png';
 import React, { useState } from 'react';
 import { Wrench, Handshake, Sparkles, Check, X, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
@@ -10,11 +11,12 @@ import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
 
 interface PricingPageProps {
   onNavigateHome: () => void;
+  onNavigateToDIY: () => void;
 }
 
 type PlanType = 'diy' | 'diwy' | 'dify' | null;
 
-const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome }) => {
+const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToDIY }) => {
   const [showDialog, setShowDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PlanType>(null);
   const [emailInput, setEmailInput] = useState('');
@@ -68,7 +70,6 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome }) => {
       // Prepare update/insert data based on plan type
       const leadData: any = {
         email: trimmedEmail,
-        updated_at: new Date().toISOString(),
       };
 
       if (selectedPlan === 'diy') {
@@ -162,7 +163,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome }) => {
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <img
-              src={logo}
+              src={image_17da7883e3dbcea089c2c87883548245f7b8aa61}
               alt="Think SID Logo"
               className="h-16 w-auto"
             />
@@ -223,10 +224,10 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome }) => {
 
               {/* CTA Button */}
               <Button
-                onClick={() => handlePlanClick('diy')}
+                onClick={onNavigateToDIY}
                 className="w-full h-12 bg-[#ebff82] text-[#1c1c60] hover:bg-[#e0f570] hover:-translate-y-0.5 hover:shadow-lg rounded-lg transition-all duration-150"
               >
-                Start now
+                Start Now
               </Button>
             </div>
 

@@ -54,13 +54,13 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
           </p>
 
           {/* Main Headline */}
-          <h1 className="text-white mb-6 text-4xl md:text-5xl lg:text-6xl leading-tight max-w-[900px] mx-auto">
-            Help Agricultural Vendors Sell More with Proven Social Proof
+          <h1 className="text-white mb-6 leading-tight max-w-[900px] mx-auto font-[IBM_Plex_Sans] font-bold font-normal text-[48px]">
+            We Help Agricultural Vendors Sell More with Proven Social Proof
           </h1>
 
           {/* Subheadline */}
           <p className="text-white/90 text-lg md:text-xl leading-relaxed max-w-[800px] mx-auto mb-10">
-            Most sustainable ag vendors struggle to prove ROI. We help you turn farmer success stories into compelling evidence that converts prospects into customers.
+            Farmers trust other farmers - that's that. We help you turn your clients' success stories into compelling evidence that will help you land more sales.
           </p>
 
           {/* CTA Buttons */}
@@ -104,7 +104,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
 
           {/* Description */}
           <p className="text-[#475569] text-lg leading-relaxed text-center max-w-[800px] mx-auto mb-12">
-            Sustainable ag vendors face a unique challenge: your products need proof. Farmers won't invest in biochar, vermicompost, or regenerative practices without seeing real results from other farmers like them.
+            Your biggest challenge: your products need proof. Farmers won't invest their hard-earned cash without seeing real results from other farmers like them.
           </p>
 
           {/* Stat Cards */}
@@ -137,7 +137,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
       </section>
 
       {/* SOLUTION SECTION */}
-      <section className="bg-gradient-to-b from-[#F8F9FA] to-white py-16 md:py-20 px-8">
+      <section className="bg-gradient-to-b from-[#F8F9FA] to-white py-16 md:py-20 px-8 bg-[rgb(243,243,243)]">
         <div className="max-w-[1200px] mx-auto">
           {/* Section Label */}
           <p className="text-[#5b81ff] text-sm font-semibold uppercase tracking-widest text-center mb-4">
@@ -240,14 +240,14 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
 
               {/* CTA */}
               <div className="text-[#5b81ff] font-semibold flex items-center gap-2 mt-6">
-                Join Waitlist
+                Start now
                 <ArrowRight className="w-4 h-4" />
               </div>
             </button>
 
             {/* Card 3: Done For You */}
             <button
-              onClick={onNavigateToPricing}
+              onClick={() => window.open('https://calendar.notion.so/meet/santiagothinksid/5j8824oqb', '_blank')}
               className="bg-white border-2 border-[#E2E8F0] rounded-2xl p-10 hover:border-[#ebff82] hover:-translate-y-2 hover:shadow-xl transition-all duration-300 text-left"
             >
               {/* Icon */}
@@ -287,7 +287,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
 
               {/* CTA */}
               <div className="text-[#5b81ff] font-semibold flex items-center gap-2 mt-6">
-                View Plans
+                Book a call
                 <ArrowRight className="w-4 h-4" />
               </div>
             </button>
@@ -296,50 +296,50 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
       </section>
 
       {/* HOW IT WORKS SECTION */}
-      <section className="bg-[#1c1c60] py-16 md:py-20 px-8">
+      <section className="bg-white py-16 md:py-20 px-8">
         <div className="max-w-[1200px] mx-auto">
           {/* Heading */}
-          <h2 className="text-white text-center mb-16 text-3xl md:text-4xl">
+          <h2 className="text-[#1c1c60] text-center mb-16 text-3xl md:text-4xl">
             From Assessment to Results in 3 Simple Steps
           </h2>
 
           {/* Steps */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {/* Step 1 */}
-            <div className="bg-white/10 border border-white/20 rounded-xl p-8 backdrop-blur-sm">
+            <div className="bg-[#1c1c60]/10 border border-[#1c1c60]/20 rounded-xl p-8 backdrop-blur-sm hover:bg-[rgba(28,28,96,0.85)] transition-all duration-300 group">
               <div className="w-12 h-12 bg-[#ebff82] rounded-full flex items-center justify-center mb-5">
                 <span className="text-[#1c1c60] text-2xl">1</span>
               </div>
-              <h3 className="text-white mb-3" style={{ fontSize: '24px' }}>
+              <h3 className="text-[#1c1c60] group-hover:text-white mb-3 transition-colors duration-300" style={{ fontSize: '24px' }}>
                 Assess
               </h3>
-              <p className="text-white/90 text-[16px] leading-relaxed">
+              <p className="text-[#1c1c60]/80 group-hover:text-white/90 text-[16px] leading-relaxed transition-colors duration-300">
                 Run our free thermometer on your website. Get your social proof score in 2 minutes.
               </p>
             </div>
 
             {/* Step 2 */}
-            <div className="bg-white/10 border border-white/20 rounded-xl p-8 backdrop-blur-sm">
+            <div className="bg-[#1c1c60]/10 border border-[#1c1c60]/20 rounded-xl p-8 backdrop-blur-sm hover:bg-[rgba(28,28,96,0.85)] transition-all duration-300 group">
               <div className="w-12 h-12 bg-[#ebff82] rounded-full flex items-center justify-center mb-5">
                 <span className="text-[#1c1c60] text-2xl">2</span>
               </div>
-              <h3 className="text-white mb-3" style={{ fontSize: '24px' }}>
+              <h3 className="text-[#1c1c60] group-hover:text-white mb-3 transition-colors duration-300" style={{ fontSize: '24px' }}>
                 Choose
               </h3>
-              <p className="text-white/90 text-[16px] leading-relaxed">
+              <p className="text-[#1c1c60]/80 group-hover:text-white/90 text-[16px] leading-relaxed transition-colors duration-300">
                 Pick your implementation path: DIY with templates or done-for-you professional service.
               </p>
             </div>
 
             {/* Step 3 */}
-            <div className="bg-white/10 border border-white/20 rounded-xl p-8 backdrop-blur-sm">
+            <div className="bg-[#1c1c60]/10 border border-[#1c1c60]/20 rounded-xl p-8 backdrop-blur-sm hover:bg-[rgba(28,28,96,0.85)] transition-all duration-300 group">
               <div className="w-12 h-12 bg-[#ebff82] rounded-full flex items-center justify-center mb-5">
                 <span className="text-[#1c1c60] text-2xl">3</span>
               </div>
-              <h3 className="text-white mb-3" style={{ fontSize: '24px' }}>
+              <h3 className="text-[#1c1c60] group-hover:text-white mb-3 transition-colors duration-300" style={{ fontSize: '24px' }}>
                 Convert
               </h3>
-              <p className="text-white/90 text-[16px] leading-relaxed">
+              <p className="text-[#1c1c60]/80 group-hover:text-white/90 text-[16px] leading-relaxed transition-colors duration-300">
                 Deploy proven social proof on your site and watch your conversion rates climb.
               </p>
             </div>
@@ -372,15 +372,15 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
       </section>
 
       {/* FINAL CTA SECTION */}
-      <section className="bg-gradient-to-br from-[#ebff82] to-[#d4f04e] py-16 md:py-20 px-8">
+      <section className="bg-[#1c1c60] py-16 md:py-20 px-8">
         <div className="max-w-[800px] mx-auto text-center">
           {/* Heading */}
-          <h2 className="text-[#1c1c60] mb-6 text-3xl md:text-4xl">
+          <h2 className="text-white mb-6 text-3xl md:text-4xl">
             Ready to Turn Farmer Success into Your Sales Engine?
           </h2>
 
           {/* Description */}
-          <p className="text-[#475569] text-lg leading-relaxed mb-10">
+          <p className="text-white text-lg leading-relaxed mb-10">
             Start with a free 2-minute assessment. No signup, no credit card, just instant insights.
           </p>
 
@@ -388,7 +388,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
           <Button
             onClick={onNavigateToThermometer}
             size="lg"
-            className="h-14 px-12 bg-[#1c1c60] text-white hover:bg-[#2a3f6f] hover:-translate-y-0.5 rounded-lg shadow-xl text-lg"
+            className="h-14 px-12 bg-[#ebff82] text-[#1c1c60] hover:bg-[#e0f570] hover:-translate-y-0.5 rounded-lg shadow-xl text-lg"
           >
             Get Your Free Assessment
           </Button>
@@ -402,11 +402,11 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
             {/* Column 1: Brand */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <img src={logo} alt="Think SID Logo" className="h-12 w-auto" />
+                <img src={logo} alt="think SID" className="h-8 w-auto" />
                 <span className="text-white text-xl font-semibold">think SID</span>
               </div>
               <p className="text-white/70 text-sm leading-relaxed mb-6">
-                Strategic Innovation for sustainable ag vendors
+                Strategy  |  Innovation  |  Design
               </p>
               <div className="flex items-center gap-4">
                 <a

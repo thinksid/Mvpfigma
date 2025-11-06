@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Loader2, ArrowRight, TrendingUp, BarChart3, CheckCircle2 } from 'lucide-react';
+import { Search, ArrowRight, TrendingUp, BarChart3, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
@@ -7,9 +7,10 @@ import { Label } from './ui/label';
 import { Navigation } from './Navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
+import newLogo from 'figma:asset/new-uploaded-logo.png';
 
 interface LandingPageProps {
-  onSuccess: (data: any) => void;
+  onSuccess: (url: string) => void;
   onNavigateHome: () => void;
   onNavigateToThermometer: () => void;
   onNavigateToDIY: () => void;
@@ -27,16 +28,13 @@ export function LandingPage({
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [urlError, setUrlError] = useState('');
   const [checkboxError, setCheckboxError] = useState('');
-  const [submitError, setSubmitError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Clear previous errors
     setUrlError('');
     setCheckboxError('');
-    setSubmitError('');
 
     // Validation
     let trimmedUrl = url.trim();
@@ -59,34 +57,8 @@ export function LandingPage({
       trimmedUrl = 'https://' + trimmedUrl;
     }
 
-    // Submit to webhook
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('https://thinksid.app.n8n.cloud/webhook/api/scan/start', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          url: trimmedUrl,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await response.json();
-      
-      // Navigate to preview page with data
-      onSuccess(data);
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      setSubmitError('Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    // Pass URL to processing page
+    onSuccess(trimmedUrl);
   };
 
   return (
@@ -116,12 +88,7 @@ export function LandingPage({
           {/* Logo */}
           <div className="text-center mb-12">
             <a href="/" className="inline-block">
-              <img
-                src={logo}
-                alt="Think SID Logo"
-                className="h-20 md:h-24 w-auto mx-auto"
-                style={{ height: '96px', width: 'auto' }}
-              />
+              {/* Logo removed */}
             </a>
           </div>
 
@@ -151,13 +118,12 @@ export function LandingPage({
                         setUrl(e.target.value);
                         setUrlError('');
                       }}
-                      className={`h-14 pl-12 pr-4 bg-[#f3f3f3] border-2 rounded-lg transition-colors ${
+                      className={`h-14 pl-12 pr-4 bg-[#f3f3f3] border-2 rounded-lg transition-colors text-[#1c1c60] ${
                         urlError 
                           ? 'border-[#EF4444] focus-visible:ring-[#EF4444]' 
                           : 'border-transparent focus-visible:ring-[#5b81ff] focus-visible:border-[#5b81ff]'
                       }`}
                       style={{ fontSize: '16px' }}
-                      disabled={isLoading}
                     />
                   </div>
                   {urlError && (
@@ -182,7 +148,6 @@ export function LandingPage({
                           ? 'border-[#EF4444]' 
                           : 'border-[#cbd5e1]'
                       }`}
-                      disabled={isLoading}
                     />
                     <Label
                       htmlFor="privacy"
@@ -210,29 +175,12 @@ export function LandingPage({
                 {/* Submit Button */}
                 <Button
                   type="submit"
-                  className="w-full h-14 bg-[#ebff82] hover:bg-[#e0f570] text-[#1c1c60] rounded-lg shadow-md hover:shadow-lg transition-all disabled:bg-[#E2E8F0] disabled:text-[#94A3B8] disabled:shadow-none group"
+                  className="w-full h-14 bg-[#ebff82] hover:bg-[#e0f570] text-[#1c1c60] rounded-lg shadow-md hover:shadow-lg transition-all group"
                   style={{ fontSize: '16px', fontWeight: '700' }}
-                  disabled={isLoading}
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      Analyze Website
-                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
+                  Analyze Website
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
-
-                {/* Submit Error */}
-                {submitError && (
-                  <p role="alert" className="text-center text-[#EF4444]" style={{ fontSize: '14px' }}>
-                    {submitError}
-                  </p>
-                )}
               </form>
             </div>
           </div>
@@ -243,8 +191,8 @@ export function LandingPage({
       <section className="py-24 bg-[#f3f3f3]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="mb-4 text-3xl md:text-4xl text-[#1c1c60]">What You'll Discover</h2>
-            <p className="text-xl text-[#717182]">
+            <h2 className="mb-4 text-3xl md:text-4xl text-[#1c1c60]" style={{ fontWeight: '700' }}>What You'll Discover</h2>
+            <p className="text-xl text-[#1c1c60]" style={{ fontWeight: '700' }}>
               Get instant insights into your website's persuasion power
             </p>
           </div>
@@ -252,8 +200,8 @@ export function LandingPage({
           <div className="grid md:grid-cols-3 gap-8">
             {/* Feature 1 */}
             <div className="bg-white p-8 rounded-xl shadow-sm border-2 border-transparent hover:border-[#5b81ff] transition-all hover:shadow-lg">
-              <div className="mb-6 w-16 h-16 bg-[#5b81ff]/10 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-8 h-8 text-[#5b81ff]" />
+              <div className="mb-6 w-16 h-16 rounded-lg flex items-center justify-center bg-gradient-to-br from-[#1c1c60] to-[#5b81ff]">
+                <TrendingUp className="w-8 h-8 text-white" />
               </div>
               <h3 className="mb-3 text-[#1c1c60]">Social Proof Score</h3>
               <p className="text-[#717182]">
@@ -263,8 +211,8 @@ export function LandingPage({
 
             {/* Feature 2 */}
             <div className="bg-white p-8 rounded-xl shadow-sm border-2 border-transparent hover:border-[#5b81ff] transition-all hover:shadow-lg">
-              <div className="mb-6 w-16 h-16 bg-[#ebff82]/20 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-8 h-8 text-[#1c1c60]" />
+              <div className="mb-6 w-16 h-16 rounded-lg flex items-center justify-center bg-gradient-to-br from-[#1c1c60] to-[#5b81ff]">
+                <BarChart3 className="w-8 h-8 text-white" />
               </div>
               <h3 className="mb-3 text-[#1c1c60]">Detailed Analysis</h3>
               <p className="text-[#717182]">
@@ -274,8 +222,8 @@ export function LandingPage({
 
             {/* Feature 3 */}
             <div className="bg-white p-8 rounded-xl shadow-sm border-2 border-transparent hover:border-[#5b81ff] transition-all hover:shadow-lg">
-              <div className="mb-6 w-16 h-16 bg-[#5b81ff]/10 rounded-lg flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-[#5b81ff]" />
+              <div className="mb-6 w-16 h-16 rounded-lg flex items-center justify-center bg-gradient-to-br from-[#1c1c60] to-[#5b81ff]">
+                <CheckCircle2 className="w-8 h-8 text-white" />
               </div>
               <h3 className="mb-3 text-[#1c1c60]">Improvement Roadmap</h3>
               <p className="text-[#717182]">
