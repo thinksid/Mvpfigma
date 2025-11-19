@@ -1,20 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navigation } from '../Navigation';
 import { ProgressIndicator } from './ProgressIndicator';
 import { useDIY } from '../../contexts/DIYContext';
 import { diyProjectId, diyPublicAnonKey, getDIYSupabaseClient } from '../../utils/supabase/diy-client';
-import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button-simple';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from '../ui/sonner';
+import { HTMLEditor } from './HTMLEditor';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
+  DialogDescription,
+} from '../ui/dialog-simple';
 import { Input } from '../ui/input';
-import { Label } from '../ui/label';
+import { Label } from '../ui/label-simple';
+import { trackDIYCheckoutInitiated } from '../../utils/analytics';
 
 interface DIYPreviewProps {
   onNavigateHome: () => void;
@@ -51,14 +54,14 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
   onNavigateToDIYDownload,
   onNavigateToDIYCreate,
 }) => {
-  const sb = getDIYSupabaseClient();
+  const getSb = () => getDIYSupabaseClient();
   const { generationId: contextGenerationId, htmlCode: contextHtmlCode } = useDIY();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [htmlCode, setHtmlCode] = useState<string>('');
   const [testimonialCount, setTestimonialCount] = useState<number>(0);
   const [stripeLoaded, setStripeLoaded] = useState(false);
-  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Modal and form state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -122,7 +125,7 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
         console.log('💳 Stripe payment detected, looking up generation from session...');
         
         // Query the database to find the generation associated with this session
-        const { data: generationData, error: lookupError } = await sb
+        const { data: generationData, error: lookupError } = await getSb()
           .from('diy_generations')
           .select('*')
           .eq('stripe_session_id', sessionId)
@@ -152,7 +155,7 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
       console.log('📡 Fetching generation from database...');
 
       // Fetch from diy_generations table
-      const { data, error: dbError } = await sb
+      const { data, error: dbError } = await getSb()
         .from('diy_generations')
         .select('*')
         .eq('generation_id', idToFetch)
@@ -205,6 +208,9 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
       setCurrentGenerationId(generationId);
       // Store in localStorage as backup
       localStorage.setItem('pending_generation_id', generationId);
+      
+      // Track checkout initiation
+      trackDIYCheckoutInitiated(generationId, testimonialCount);
     }
     
     setIsModalOpen(true);
@@ -248,7 +254,7 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
       console.log('  - Vendor Email:', vendorEmail);
 
       // Save directly to Supabase using the DIY client
-      const { error: updateError } = await sb
+      const { error: updateError } = await getSb()
         .from('diy_generations')
         .update({
           vendor_name: vendorName,

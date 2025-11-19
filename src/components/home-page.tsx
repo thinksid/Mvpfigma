@@ -1,6 +1,6 @@
 import React from 'react';
 import { Upload, Eye, Code2, ArrowRight, Zap } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from './ui/button-simple';
 import { Navigation } from './Navigation';
 import { CustomerStoryCarousel } from './CustomerStoryCarousel';
 import { CodePreview } from './CodePreview';

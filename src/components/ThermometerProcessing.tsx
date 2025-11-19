@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Navigation } from './Navigation';
-import { Progress } from './ui/progress';
+import React, { useEffect, useState } from 'react';
+import { Card } from './ui/card';
+import { Progress } from './ui/progress-simple';
 import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from './ui/sonner';
 
 interface ThermometerProcessingProps {
   url: string;

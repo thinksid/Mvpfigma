@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Lightbulb, Wrench, Handshake, Sparkles, ArrowUp, Check, X, Loader2, AlertCircle, Star, Users, Award, MessageSquare, TrendingUp, Shield } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from './ui/button-simple';
 import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { Label } from './ui/label-simple';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog-simple';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { toast } from 'sonner@2.0.3';
+import { toast } from './ui/sonner';
 import { getFreebieSupabaseClient } from '../utils/supabase/freebie-client';
 
 interface Finding {
@@ -144,13 +144,13 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
       }
 
       // Open calendar link
-      window.open('https://calendar.notion.so/meet/santiagothinksid/5j8824oqb', '_blank');
+      window.open('https://calendar.notion.so/meet/santiagothinksid/flashcall', '_blank');
       
       toast.success('Opening calendar... Book a time that works for you!');
     } catch (error) {
       console.error('Error in handleBookCall:', error);
       // Still open the calendar even if the database update fails
-      window.open('https://calendar.notion.so/meet/santiagothinksid/5j8824oqb', '_blank');
+      window.open('https://calendar.notion.so/meet/santiagothinksid/flashcall', '_blank');
     }
   };
 
@@ -550,7 +550,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
           {/* Pricing Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Card 1: DIY */}
-            <div className="bg-white border-2 border-[#E2E8F0] rounded-2xl p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-200">
+            <div className="bg-white border-2 border-[#E2E8F0] rounded-2xl p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-200 flex flex-col">
               <div className="w-14 h-14 bg-gradient-to-br from-[#1c1c60] to-[#5b81ff] rounded-2xl flex items-center justify-center mb-4">
                 <Wrench className="w-8 h-8 text-white" />
               </div>
@@ -564,7 +564,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
                 <span className="text-[#64748B]" style={{ fontSize: '16px' }}>one-time</span>
               </div>
               
-              <p className="text-[#64748B] text-[14px] leading-relaxed mb-6">
+              <p className="text-[#64748B] text-[14px] leading-relaxed mb-6 flex-grow">
                 Plug testimonials into template fields and receive an HTML snippet ready to be plugged into your site
               </p>
               
@@ -583,7 +583,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
               
               <Button 
                 onClick={handleDIYStart}
-                className="w-full h-14 bg-gradient-to-r from-[#1c1c60] to-[#2a3f6f] text-white hover:from-[#2a3f6f] hover:to-[#1c1c60] rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                className="w-full h-14 bg-gradient-to-r from-[#1c1c60] to-[#2a3f6f] text-white hover:from-[#2a3f6f] hover:to-[#1c1c60] rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 mt-auto"
                 style={{ fontSize: '16px', fontWeight: 'bold' }}
               >
                 Start Building Now →
@@ -591,7 +591,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
             </div>
 
             {/* Card 2: DIWY - RECOMMENDED */}
-            <div className="bg-white border border-[#5b81ff] rounded-2xl p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-200 relative">
+            <div className="bg-white border-4 border-[#5b81ff] rounded-2xl p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-200 relative flex flex-col">
               {/* Recommended Badge */}
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#1c1c60] to-[#2a3f6f] text-white px-6 py-2 rounded-full shadow-lg" style={{ fontSize: '12px', fontWeight: 'bold' }}>
                 ⭐ RECOMMENDED
@@ -609,7 +609,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
                 <span className="text-[#5b81ff]" style={{ fontSize: '42px', fontWeight: 'bold' }}>$299</span>
               </div>
               
-              <p className="text-[#64748B] text-[14px] leading-relaxed mb-6">
+              <p className="text-[#64748B] text-[14px] leading-relaxed mb-6 flex-grow">
                 Get assistance with storytelling and receive a customized HTML snippet
               </p>
               
@@ -629,7 +629,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
               
               <Button 
                 onClick={() => handleBookCall('diwy')}
-                className="w-full h-14 bg-[#1c1c60] text-white hover:bg-[#2a3f6f] rounded-xl shadow-lg hover:shadow-xl transition-all"
+                className="w-full h-14 bg-[#1c1c60] text-white hover:bg-[#2a3f6f] rounded-xl shadow-lg hover:shadow-xl transition-all mt-auto"
                 style={{ fontSize: '16px', fontWeight: 'bold' }}
               >
                 Book a Call →
@@ -637,7 +637,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
             </div>
 
             {/* Card 3: DIFY */}
-            <div className="bg-white border-2 border-[#E2E8F0] rounded-2xl p-8 hover:border-[#5b81ff] hover:shadow-2xl hover:-translate-y-1 transition-all duration-200">
+            <div className="bg-white border-2 border-[#E2E8F0] rounded-2xl p-8 hover:border-[#5b81ff] hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 flex flex-col">
               <div className="w-14 h-14 bg-[#5b81ff]/10 rounded-2xl flex items-center justify-center mb-4">
                 <Sparkles className="w-8 h-8 text-[#5b81ff]" />
               </div>
@@ -651,7 +651,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
                 <span className="text-[#64748B]" style={{ fontSize: '18px' }}>- $999</span>
               </div>
               
-              <p className="text-[#64748B] text-[14px] leading-relaxed mb-6">
+              <p className="text-[#64748B] text-[14px] leading-relaxed mb-6 flex-grow">
                 Full-service social proof implementation from data collection to deployment
               </p>
               
@@ -672,7 +672,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
               
               <Button 
                 onClick={() => handleBookCall('dify')}
-                className="w-full h-14 bg-[#1c1c60] text-white hover:bg-[#2a3f6f] rounded-xl shadow-lg hover:shadow-xl transition-all"
+                className="w-full h-14 bg-[#1c1c60] text-white hover:bg-[#2a3f6f] rounded-xl shadow-lg hover:shadow-xl transition-all mt-auto"
                 style={{ fontSize: '16px', fontWeight: 'bold' }}
               >
                 Book a Call →

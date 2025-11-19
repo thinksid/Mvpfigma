@@ -1,31 +1,30 @@
-"use client";
+import * as React from 'react';
 
-import * as React from "react";
-import * as SwitchPrimitive from "@radix-ui/react-switch@1.1.3";
-
-import { cn } from "./utils";
-
-function Switch({
-  className,
-  ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
-  return (
-    <SwitchPrimitive.Root
-      data-slot="switch"
-      className={cn(
-        "peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-switch-background focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
-      {...props}
-    >
-      <SwitchPrimitive.Thumb
-        data-slot="switch-thumb"
-        className={cn(
-          "bg-card dark:data-[state=unchecked]:bg-card-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0",
-        )}
-      />
-    </SwitchPrimitive.Root>
-  );
+interface SwitchProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+  onCheckedChange?: (checked: boolean) => void;
 }
 
-export { Switch };
+export const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
+  ({ className = '', onCheckedChange, onChange, ...props }, ref) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange?.(e);
+      onCheckedChange?.(e.target.checked);
+    };
+
+    return (
+      <label className="relative inline-block w-11 h-6">
+        <input
+          type="checkbox"
+          className="peer sr-only"
+          ref={ref}
+          onChange={handleChange}
+          {...props}
+        />
+        <div className={`absolute inset-0 rounded-full bg-input transition peer-checked:bg-primary cursor-pointer ${className}`} />
+        <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-background transition-transform peer-checked:translate-x-5" />
+      </label>
+    );
+  }
+);
+
+Switch.displayName = 'Switch';

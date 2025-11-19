@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Search, ArrowRight, TrendingUp, BarChart3, CheckCircle2 } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from './ui/button-simple';
 import { Input } from './ui/input';
-import { Checkbox } from './ui/checkbox';
-import { Label } from './ui/label';
+import { Checkbox } from './ui/checkbox-simple';
+import { Label } from './ui/label-simple';
 import { Navigation } from './Navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
 import newLogo from 'figma:asset/new-uploaded-logo.png';
+import { trackThermometerStart, trackThermometerURLSubmitted } from '../utils/analytics';
 
 interface LandingPageProps {
   onSuccess: (url: string) => void;
@@ -59,6 +60,7 @@ export function LandingPage({
 
     // Pass URL to processing page
     onSuccess(trimmedUrl);
+    trackThermometerURLSubmitted(trimmedUrl);
   };
 
   return (

@@ -1,15 +1,14 @@
-import image_b39e4115ae7b778c9fc0bfd87b5c38de758b79f8 from 'figma:asset/b39e4115ae7b778c9fc0bfd87b5c38de758b79f8.png';
-import image_3b7c8b2c143eb1817b070c9b3275059b4018cdd8 from 'figma:asset/3b7c8b2c143eb1817b070c9b3275059b4018cdd8.png';
 import React, { useState } from 'react';
 import { AlertTriangle, Lock, X, Loader2 } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from './ui/button-simple';
 import { Input } from './ui/input';
-import { Label } from './ui/label';
+import { Label } from './ui/label-simple';
 import { Navigation } from './Navigation';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose } from './ui/drawer';
-import { Progress } from './ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog-simple';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose } from './ui/drawer-simple';
+import { Progress } from './ui/progress-simple';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { trackThermometerReportPreviewed, trackThermometerReportUnlocked } from '../utils/analytics';
 
 interface PreviewPageProps {
   data: {
@@ -58,6 +57,11 @@ export function PreviewPage({
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Track page view on mount
+  React.useEffect(() => {
+    trackThermometerReportPreviewed(data.scan_id, data.score_total, data.letter);
+  }, [data.scan_id, data.score_total, data.letter]);
 
   const handleUnlockClick = () => {
     setIsModalOpen(true);
@@ -131,6 +135,7 @@ export function PreviewPage({
       // Close modal and navigate to report page
       handleCloseModal();
       onUnlockSuccess(responseData);
+      trackThermometerReportUnlocked(data.scan_id, trimmedEmail);
     } catch (error) {
       console.error('Error unlocking report:', error);
       setSubmitError('Failed to unlock report. Please try again.');
@@ -276,23 +281,23 @@ export function PreviewPage({
             <div className="hidden md:block md:w-1/4 flex-shrink-0">
               <div className="relative w-full">
                 <ImageWithFallback
-                  src={image_b39e4115ae7b778c9fc0bfd87b5c38de758b79f8}
+                  src="https://images.unsplash.com/photo-1722336450188-8d3fb3a5b2cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRyYW5zcGFyZW50JTIwZ3JhZGllbnR8ZW58MXx8fHwxNzYyMzg1Njk4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
                   alt="Report preview"
                   className="rounded-lg shadow-lg w-full"
                 />
                 <div className="absolute -bottom-4 -right-4 w-2/3 grid grid-cols-3 gap-1">
                   <ImageWithFallback
-                    src={image_3b7c8b2c143eb1817b070c9b3275059b4018cdd8}
+                    src="https://images.unsplash.com/photo-1722336450188-8d3fb3a5b2cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRyYW5zcGFyZW50JTIwZ3JhZGllbnR8ZW58MXx8fHwxNzYyMzg1Njk4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
                     alt="Report preview"
                     className="rounded shadow-md col-span-1"
                   />
                   <ImageWithFallback
-                    src={image_3b7c8b2c143eb1817b070c9b3275059b4018cdd8}
+                    src="https://images.unsplash.com/photo-1722336450188-8d3fb3a5b2cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRyYW5zcGFyZW50JTIwZ3JhZGllbnR8ZW58MXx8fHwxNzYyMzg1Njk4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
                     alt="Report preview"
                     className="rounded shadow-md col-span-1"
                   />
                   <ImageWithFallback
-                    src={image_3b7c8b2c143eb1817b070c9b3275059b4018cdd8}
+                    src="https://images.unsplash.com/photo-1722336450188-8d3fb3a5b2cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRyYW5zcGFyZW50JTIwZ3JhZGllbnR8ZW58MXx8fHwxNzYyMzg1Njk4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
                     alt="Report preview"
                     className="rounded shadow-md col-span-1"
                   />

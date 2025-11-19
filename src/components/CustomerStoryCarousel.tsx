@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, TrendingUp } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from './ui/button-simple';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface CustomerStory {

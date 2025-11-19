@@ -1,0 +1,10 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin or processing pages
+Disallow: /diy-processing
+Disallow: /thermometer-processing
+
+# Sitemap location
+Sitemap: https://thinksid.co/sitemap.xml

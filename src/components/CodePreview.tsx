@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from './ui/button-simple';
 
 interface CodePreviewProps {
   code: string;

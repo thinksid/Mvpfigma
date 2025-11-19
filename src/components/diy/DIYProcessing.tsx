@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Navigation } from '../Navigation';
+import { toast } from '../ui/sonner';
 import { useDIY } from '../../contexts/DIYContext';
-import { GenerationResponse } from '../../types/diy';
-import { publicAnonKey } from '../../utils/supabase/info';
-import { Progress } from '../ui/progress';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+
+interface GenerationResponse {
+  generation_id: string;
+  html_code: string;
+  preview_data: any;
+}
 
 interface DIYProcessingProps {
   onNavigateHome: () => void;
@@ -23,6 +23,7 @@ const LOADING_MESSAGES = [
   "Analyzing your customer stories...",
   "Crafting compelling narratives...",
   "Optimizing for conversion...",
+  "Designing your carousel...",
   "Almost there..."
 ];
 
@@ -66,12 +67,12 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
           }
           return prev + 2; // Increment by 2% every interval
         });
-      }, 1000); // Update every second for ~45 seconds
+      }, 800); // Update every 800ms for smooth animation
 
       // Cycle through messages
       const messageInterval = setInterval(() => {
         setCurrentMessage(prev => (prev + 1) % LOADING_MESSAGES.length);
-      }, 10000); // Change message every 10 seconds
+      }, 8000); // Change message every 8 seconds
 
       // Prepare request body
       const requestBody = {
@@ -150,16 +151,16 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
 
       console.log('📊 Progress set to 100%');
 
-      // ✅ FIX: Wait longer to ensure context state propagates
+      // Wait to show 100% completion
       setTimeout(() => {
         console.log('🎯 Navigating to preview page...');
         console.log('🔍 Final check - generationId being passed:', data.generation_id);
         console.log('🔍 Final check - previewData being passed:', data.preview_data);
         setIsProcessing(false);
-        onNavigateToDIYPreview(data.generation_id); // ✅ Pass generation_id in URL
+        onNavigateToDIYPreview(data.generation_id);
         console.log('✅ Navigation triggered');
         console.log('========== DIY PROCESSING COMPLETE ==========');
-      }, 2000); // ✅ Increased from 1000ms to 2000ms
+      }, 1000);
 
     } catch (err) {
       console.error('💥 ========== DIY PROCESSING ERROR ==========');
@@ -169,29 +170,17 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setIsProcessing(false);
       toast.error('Failed to generate carousel. Please try again.');
+      
+      // Navigate back to create page after showing error
+      setTimeout(() => {
+        onNavigateToDIYCreate();
+      }, 3000);
     }
   };
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Generation Failed</h2>
-          <p className="text-gray-700 mb-6">{error}</p>
-          <button
-            onClick={onNavigateToDIYCreate}
-            className="px-6 py-3 bg-[#5b81ff] text-white rounded-lg hover:bg-[#4a6fd9]"
-          >
-            Back to Edit
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+      {/* Navigation Bar */}
       <Navigation
         onNavigateHome={onNavigateHome}
         onNavigateToThermometer={onNavigateToThermometer}
@@ -204,26 +193,85 @@ export const DIYProcessing: React.FC<DIYProcessingProps> = ({
       <div style={{ height: '80px' }} />
 
       {/* Processing Content */}
-      <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4">
-        <div className="text-center max-w-md">
-          <div className="mb-8">
-            <Loader2 className="h-16 w-16 animate-spin text-[#5b81ff] mx-auto mb-4" />
+      <div className="max-w-3xl mx-auto px-6 py-20">
+        {error ? (
+          // Error State
+          <div className="text-center">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <h3 className="text-2xl text-[#1c1c60] mb-4">Generation Failed</h3>
+            <p className="text-gray-600 mb-2">{error}</p>
+            <p className="text-sm text-gray-500">Redirecting you back...</p>
           </div>
+        ) : (
+          // Loading State
+          <div className="text-center">
+            {/* Animated Icon - matching thermometer style */}
+            <div className="relative w-32 h-32 mx-auto mb-8">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#5b81ff] to-[#1c1c60] rounded-full opacity-10 animate-pulse"></div>
+              <div className="absolute inset-4 bg-gradient-to-br from-[#5b81ff] to-[#1c1c60] rounded-full opacity-20 animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+              <div className="absolute inset-8 bg-gradient-to-br from-[#5b81ff] to-[#1c1c60] rounded-full flex items-center justify-center">
+                <Loader2 className="w-12 h-12 text-white animate-spin" />
+              </div>
+            </div>
 
-          <h2 className="text-3xl font-bold text-[#1c1c60] mb-4">
-            Creating Your Carousel
-          </h2>
+            {/* Animated Message */}
+            <h3 className="text-3xl text-[#1c1c60] mb-4 animate-pulse">
+              {LOADING_MESSAGES[currentMessage]}
+            </h3>
+            <p className="text-gray-600 mb-12">
+              Creating your personalized carousel with {testimonials.length} {testimonials.length === 1 ? 'testimonial' : 'testimonials'}
+            </p>
 
-          <p className="text-lg text-gray-600 mb-8 animate-pulse min-h-[1.75rem]">
-            {LOADING_MESSAGES[currentMessage]}
-          </p>
+            {/* Progress Bar */}
+            <div className="max-w-md mx-auto">
+              <Progress value={progress} className="h-3 mb-3" />
+              <p className="text-sm text-gray-500">{Math.round(progress)}% complete</p>
+            </div>
 
-          <Progress value={progress} className="mb-6 h-3" />
+            {/* Info Cards */}
+            <div className="mt-16 grid md:grid-cols-3 gap-6">
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+                <div className="w-12 h-12 bg-[#5b81ff]/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-[#5b81ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-600">AI-powered story optimization</p>
+              </div>
 
-          <p className="text-sm text-gray-500">
-            This takes about 45 seconds
-          </p>
-        </div>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+                <div className="w-12 h-12 bg-[#5b81ff]/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-[#5b81ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-600">Professional carousel design</p>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+                <div className="w-12 h-12 bg-[#5b81ff]/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-[#5b81ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-600">Ready-to-embed code</p>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            <div className="mt-12 bg-gradient-to-br from-[#5b81ff]/5 to-[#ebff82]/10 rounded-lg p-6 border border-[#5b81ff]/20">
+              <p className="text-sm text-gray-700 leading-relaxed">
+                💡 <strong>Did you know?</strong> Customer testimonials in carousel format can increase 
+                trust and credibility by up to 72%. We're crafting an engaging experience that 
+                highlights your customer success stories.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

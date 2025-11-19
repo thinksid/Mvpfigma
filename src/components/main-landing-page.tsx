@@ -1,10 +1,10 @@
-import image_cff0762a6794db634da4baa2ef71750dfd161e77 from 'figma:asset/cff0762a6794db634da4baa2ef71750dfd161e77.png';
 import React from 'react';
 import { ArrowRight, TrendingUp, Wrench, Sparkles, Check, Linkedin, Twitter } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from './ui/button-simple';
 import { Navigation } from './Navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
+import image_cff0762a6794db634da4baa2ef71750dfd161e77 from 'figma:asset/cff0762a6794db634da4baa2ef71750dfd161e77.png';
 import { ThinkSidsCarousel } from './ThinkSidsCarousel';
 import { customerStories } from './diy/DIYLanding';
 
@@ -71,7 +71,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
             <Button
               onClick={onNavigateToThermometer}
               size="lg"
-              className="h-14 px-10 bg-[#ebff82] text-[#1c1c60] hover:bg-[#e0f570] hover:-translate-y-0.5 rounded-lg shadow-lg text-lg"
+              className="h-14 px-10 !bg-[#ebff82] !text-[#1c1c60] hover:!bg-[#e0f570] hover:-translate-y-0.5 rounded-lg shadow-lg text-lg"
             >
               Get Free Assessment
             </Button>
@@ -79,7 +79,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
               onClick={onNavigateToPricing}
               size="lg"
               variant="outline"
-              className="h-14 px-10 bg-transparent border-2 border-white/30 text-white hover:border-white hover:bg-white/10 rounded-lg text-lg"
+              className="h-14 px-10 !bg-transparent !border-2 !border-white/30 !text-white hover:!border-white hover:!bg-white/10 rounded-lg text-lg"
             >
               View Pricing
             </Button>
@@ -250,7 +250,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
 
             {/* Card 3: Done For You */}
             <button
-              onClick={() => window.open('https://calendar.notion.so/meet/santiagothinksid/5j8824oqb', '_blank')}
+              onClick={() => window.open('https://calendar.notion.so/meet/santiagothinksid/flashcall', '_blank')}
               className="bg-white border-2 border-[#E2E8F0] rounded-2xl p-10 hover:border-[#ebff82] hover:-translate-y-2 hover:shadow-xl transition-all duration-300 text-left"
             >
               {/* Icon */}
@@ -363,6 +363,60 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
         </div>
       </section>
 
+      {/* BLOG SECTION */}
+      <section className="bg-white py-16 md:py-20 px-8">
+        <div className="max-w-[1200px] mx-auto">
+          {/* Section Label */}
+          <p className="text-[#5b81ff] text-sm font-semibold uppercase tracking-widest text-center mb-4">
+            From the Blog
+          </p>
+
+          {/* Heading */}
+          <h2 className="text-[#1c1c60] text-center mb-6 text-3xl">
+            Insights on Social Proof & Ag Marketing
+          </h2>
+
+          {/* Description */}
+          <p className="text-[#717182] text-center mb-12 max-w-[700px] mx-auto text-lg">
+            Learn how to leverage customer success stories, build trust with farmers, and turn testimonials into sales engines.
+          </p>
+
+          {/* Featured Blog Post Card */}
+          <a
+            href="https://thinksid.substack.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block max-w-[800px] mx-auto"
+          >
+            <div className="bg-white border-2 border-gray-200 rounded-lg overflow-hidden hover:border-[#5b81ff] hover:shadow-xl transition-all duration-300 cursor-pointer group">
+              <div className="p-8 md:p-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="inline-block px-3 py-1 bg-[#5b81ff]/10 text-[#5b81ff] rounded-full text-sm font-semibold">
+                    Latest Post
+                  </span>
+                  <span className="text-[#717182] text-sm">
+                    New on Substack
+                  </span>
+                </div>
+                
+                <h3 className="text-[#1c1c60] mb-4 text-2xl md:text-3xl group-hover:text-[#5b81ff] transition-colors">
+                  Read the Latest Insights
+                </h3>
+                
+                <p className="text-[#717182] mb-6 leading-relaxed">
+                  Discover proven strategies for agricultural vendors to transform customer testimonials into powerful sales tools. Visit our Substack for the full article.
+                </p>
+
+                <div className="flex items-center gap-2 text-[#5b81ff] font-semibold group-hover:gap-4 transition-all">
+                  <span>Visit Blog</span>
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </section>
+
       {/* FINAL CTA SECTION */}
       <section className="bg-[#1c1c60] py-16 md:py-20 px-8">
         <div className="max-w-[800px] mx-auto text-center">
@@ -380,7 +434,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
           <Button
             onClick={onNavigateToThermometer}
             size="lg"
-            className="h-14 px-12 bg-[#ebff82] text-[#1c1c60] hover:bg-[#e0f570] hover:-translate-y-0.5 rounded-lg shadow-xl text-lg"
+            className="h-14 px-12 !bg-[#ebff82] !text-[#1c1c60] hover:!bg-[#e0f570] hover:-translate-y-0.5 rounded-lg shadow-xl text-lg"
           >
             Get Your Free Assessment
           </Button>

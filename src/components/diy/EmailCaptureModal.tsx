@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog-simple';
 import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Button } from '../ui/button';
+import { Button } from '../ui/button-simple';
 import { Loader2, Mail, User } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from '../ui/sonner';
 
 interface EmailCaptureModalProps {
   isOpen: boolean;

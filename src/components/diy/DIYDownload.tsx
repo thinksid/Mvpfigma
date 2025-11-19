@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Button } from '../ui/button';
+import React, { useState, useEffect } from 'react';
+import { Button } from '../ui/button-simple';
 import { Card } from '../ui/card';
 import { Loader2, Download, Copy, CheckCircle2, Mail } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from '../ui/sonner';
 import { useDIY } from '../../contexts/DIYContext';
 import { Navigation } from '../Navigation';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs-simple';
+import { trackDIYPaymentCompleted, trackDIYCodeDownloaded } from '../../utils/analytics';
 
 // ✅ YOUR REAL CREDENTIALS
 const SUPABASE_URL = 'https://dbojiegvkyvbmbivmppi.supabase.co';
@@ -124,6 +125,9 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
       // Auto-send email
       await sendCodeToEmail(generation);
 
+      // Track payment completed
+      trackDIYPaymentCompleted(gid);
+
     } catch (error) {
       console.error('❌ Verification error:', error);
       toast.error('Failed to load your code. Please contact support.');
@@ -178,6 +182,7 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
     URL.revokeObjectURL(url);
     
     toast.success('Code downloaded!');
+    trackDIYCodeDownloaded(generationData.generation_id);
   };
 
   const loadFromContext = () => {
@@ -341,7 +346,7 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
 
             <TabsContent value="wordpress" className="mt-6">
               <a 
-                href="https://youtu.be/dg5h1zo3XQU?si=k2wCHqoum4QJQwtf" 
+                href="https://www.youtube.com/watch?v=BLX_rD11DMk" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="block"
@@ -349,7 +354,7 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
                 <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow max-w-md mx-auto">
                   <div className="aspect-video bg-gray-200 flex items-center justify-center">
                     <img 
-                      src="https://img.youtube.com/vi/dg5h1zo3XQU/maxresdefault.jpg" 
+                      src="https://img.youtube.com/vi/BLX_rD11DMk/maxresdefault.jpg" 
                       alt="WordPress Tutorial"
                       className="w-full h-full object-cover"
                     />
@@ -359,21 +364,34 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
                   </div>
                 </Card>
               </a>
+              
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg max-w-md mx-auto">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">Note:</span> Select the <span className="font-semibold">HTML widget</span> and <span className="font-semibold italic">not</span> the custom HTML widget from the list. The latter causes issues when loading the carousel on mobile.
+                </p>
+              </div>
             </TabsContent>
 
             <TabsContent value="manual" className="mt-6">
-              <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow max-w-md mx-auto opacity-50">
-                <div className="aspect-video bg-gray-200 flex items-center justify-center">
-                  <img 
-                    src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" 
-                    alt="Manual Editing Tutorial"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4">
-                  <p className="text-sm">How to manually edit HTML files (Coming soon)</p>
-                </div>
-              </Card>
+              <a 
+                href="https://www.youtube.com/watch?v=ay0_plImm6w" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow max-w-md mx-auto">
+                  <div className="aspect-video bg-gray-200 flex items-center justify-center">
+                    <img 
+                      src="https://img.youtube.com/vi/ay0_plImm6w/maxresdefault.jpg" 
+                      alt="Manual Editing Tutorial"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm">How to manually edit HTML files</p>
+                  </div>
+                </Card>
+              </a>
             </TabsContent>
           </Tabs>
 

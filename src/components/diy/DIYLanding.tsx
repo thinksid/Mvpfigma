@@ -1,11 +1,15 @@
-import React from 'react';
 import { Navigation } from '../Navigation';
-import { Upload, Eye, Code2, ArrowRight } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Upload, Eye, Code2, ArrowRight, X, Check } from 'lucide-react';
+import { Button } from '../ui/button-simple';
 import { ThinkSidsCarousel } from '../ThinkSidsCarousel';
 import { CodePreview } from '../CodePreview';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import carouselPreviewImage from 'figma:asset/00ba47538c52501c3f143a608514979f2c1f6213.png';
+import image_066079ea76dbb1c4070b0fbcf6c6b88ae9766072 from 'figma:asset/066079ea76dbb1c4070b0fbcf6c6b88ae9766072.png';
+import image_4a18ae42701be2fc15037d37d296a7ce66a36686 from 'figma:asset/4a18ae42701be2fc15037d37d296a7ce66a36686.png';
+import image_f44254d0d6e22d9d926524de6c35bc2f7cf74b9b from 'figma:asset/f44254d0d6e22d9d926524de6c35bc2f7cf74b9b.png';
+import image_1e13ed9b8f1270426370ad9ff3f88e9cba33ecb8 from 'figma:asset/1e13ed9b8f1270426370ad9ff3f88e9cba33ecb8.png';
+import { trackDIYStart, trackDIYCreateStarted } from '../../utils/analytics';
 
 interface DIYLandingProps {
   onNavigateHome: () => void;
@@ -117,7 +121,7 @@ export const DIYLanding: React.FC<DIYLandingProps> = ({
   onNavigateToDIYCreate,
 }) => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Navigation Bar */}
       <Navigation
         onNavigateHome={onNavigateHome}
@@ -139,17 +143,20 @@ export const DIYLanding: React.FC<DIYLandingProps> = ({
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="relative max-w-7xl mx-auto px-6 py-24 md:py-32 text-center">
-          <h1 className="mb-6 max-w-4xl mx-auto text-[40px] font-[IBM_Plex_Sans] font-bold font-normal">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-24 lg:py-32 text-center">
+          <h1 className="mb-4 sm:mb-6 max-w-4xl mx-auto text-2xl sm:text-3xl md:text-4xl lg:text-[40px] leading-tight">
             Turn Your Customers' Success Into Sales
           </h1>
-          <p className="mb-8 max-w-2xl mx-auto text-xl text-white/80">
+          <p className="mb-6 sm:mb-8 max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-white/80 px-2">
             Transform customer testimonials into beautiful plug-and-play carousels that build trust and drive conversions on your website.
           </p>
           <Button 
             size="lg" 
-            className="bg-[#ebff82] text-[#1c1c60] hover:bg-[#ebff82]/90 px-8 py-6 text-lg group"
-            onClick={onNavigateToDIYCreate}
+            className="bg-[#ebff82] text-[#1c1c60] hover:bg-[#ebff82]/90 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg group"
+            onClick={() => {
+              trackDIYStart();
+              onNavigateToDIYCreate();
+            }}
           >
             Start now
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -157,55 +164,139 @@ export const DIYLanding: React.FC<DIYLandingProps> = ({
         </div>
       </section>
 
+      {/* Go From This to This Section */}
+      <section className="py-16 sm:py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="mb-3 sm:mb-4 text-[#1c1c60] text-2xl sm:text-3xl lg:text-[40px]">Transform Generic Reviews Into Conversion Machines</h2>
+            <p className="text-base sm:text-lg md:text-xl text-[#717182] px-2">
+              Stop wasting valuable testimonials with boring, generic displays
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-16 max-w-6xl mx-auto">
+            {/* Left: Go from this */}
+            <div className="flex flex-col">
+              <h3 className="mb-6 text-[#717182] text-lg sm:text-xl text-center h-8 flex items-center justify-center">Go from this</h3>
+              
+              {/* Card container with fixed height */}
+              <div className="flex items-center justify-center mb-12" style={{ minHeight: '280px' }}>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 w-full max-w-md">
+                  <div className="flex gap-1 mb-3 justify-center">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className="text-yellow-400 text-xl">★</span>
+                    ))}
+                  </div>
+                  <p className="text-gray-700 text-base italic mb-3 text-center">
+                    "Working with AgVendor was great!"
+                  </p>
+                  <p className="text-gray-500 text-sm text-center">
+                    - Customer
+                  </p>
+                </div>
+              </div>
+              
+              {/* X marks - problems */}
+              <div className="space-y-4 w-full max-w-md mx-auto flex flex-col items-center">
+                <div className="flex items-start gap-3">
+                  <X className="w-6 h-6 text-gray-400 flex-shrink-0 mt-1" />
+                  <p className="text-gray-600 text-base sm:text-lg">Doesn't show your value</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <X className="w-6 h-6 text-gray-400 flex-shrink-0 mt-1" />
+                  <p className="text-gray-600 text-base sm:text-lg">Doesn't tell a story</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <X className="w-6 h-6 text-gray-400 flex-shrink-0 mt-1" />
+                  <p className="text-gray-600 text-base sm:text-lg">5-star rating generates doubt, not trust</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: To this */}
+            <div className="flex flex-col">
+              <h3 className="mb-6 text-[#5b81ff] text-lg sm:text-xl text-center h-8 flex items-center justify-center">To this</h3>
+              
+              {/* Card container with fixed height */}
+              <div className="flex items-center justify-center mb-12" style={{ minHeight: '280px' }}>
+                <div className="w-full max-w-md">
+                  <ImageWithFallback
+                    src={carouselPreviewImage}
+                    alt="Professional social proof carousel showing detailed farmer testimonials with metrics"
+                    className="w-full rounded-lg shadow-xl border-2 border-[#5b81ff] scale-120 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 ease-out"
+                  />
+                </div>
+              </div>
+              
+              {/* Check marks - benefits */}
+              <div className="space-y-4 w-full max-w-md mx-auto flex flex-col items-center">
+                <div className="flex items-start gap-3">
+                  <Check className="w-6 h-6 text-[#5b81ff] flex-shrink-0 mt-1" />
+                  <p className="text-[#1c1c60] text-base sm:text-lg">Builds farmer-to-farmer trust</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-6 h-6 text-[#5b81ff] flex-shrink-0 mt-1" />
+                  <p className="text-[#1c1c60] text-base sm:text-lg">Tells YOUR story for you</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-6 h-6 text-[#5b81ff] flex-shrink-0 mt-1" />
+                  <p className="text-[#1c1c60] text-base sm:text-lg">Lets numbers prove your value</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 3-Step Process Section */}
-      <section className="py-24 bg-[#f3f3f3]">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="mb-4 text-[#1c1c60] font-[IBM_Plex_Sans] font-bold text-[40px]">How It Works</h2>
-            <p className="text-xl text-[rgb(28,28,96)]">
+      <section className="py-16 sm:py-24 bg-[#f3f3f3]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="mb-3 sm:mb-4 text-[#1c1c60] text-2xl sm:text-3xl lg:text-[40px]">How It Works</h2>
+            <p className="text-base sm:text-lg md:text-xl text-[rgb(28,28,96)] px-2">
               Three simple steps to showcase your success stories
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
             {/* Step 1 */}
-            <div className="relative bg-white p-8 rounded-xl shadow-sm border-2 border-transparent hover:border-[#5b81ff] transition-colors">
+            <div className="relative bg-white p-6 sm:p-8 rounded-xl shadow-sm border-2 border-transparent hover:border-[#5b81ff] transition-colors">
               <div className="absolute -top-4 -left-4 w-12 h-12 bg-[#5b81ff] rounded-full flex items-center justify-center">
                 <span className="text-white">1</span>
               </div>
               <div className="mb-6 w-16 h-16 bg-[#5b81ff]/10 rounded-lg flex items-center justify-center">
                 <Upload className="w-8 h-8 text-[#5b81ff]" />
               </div>
-              <h3 className="mb-3 text-[#1c1c60]">Upload your customer stories</h3>
-              <p className="text-[#717182]">
+              <h3 className="mb-3 text-[#1c1c60] text-lg sm:text-xl">Upload your customer stories</h3>
+              <p className="text-[#717182] text-sm sm:text-base">
                 Simply paste your customer testimonials, reviews, or success stories. Our AI refines them into compelling narratives.
               </p>
             </div>
 
             {/* Step 2 */}
-            <div className="relative bg-white p-8 rounded-xl shadow-sm border-2 border-transparent hover:border-[#5b81ff] transition-colors">
+            <div className="relative bg-white p-6 sm:p-8 rounded-xl shadow-sm border-2 border-transparent hover:border-[#5b81ff] transition-colors">
               <div className="absolute -top-4 -left-4 w-12 h-12 bg-[#5b81ff] rounded-full flex items-center justify-center">
                 <span className="text-white">2</span>
               </div>
               <div className="mb-6 w-16 h-16 bg-[#ebff82]/20 rounded-lg flex items-center justify-center">
                 <Eye className="w-8 h-8 text-[#1c1c60]" />
               </div>
-              <h3 className="mb-3 text-[#1c1c60]">Preview your Carousel</h3>
-              <p className="text-[#717182]">
+              <h3 className="mb-3 text-[#1c1c60] text-lg sm:text-xl">Preview your Carousel</h3>
+              <p className="text-[#717182] text-sm sm:text-base">
                 See exactly how your testimonials will look on your site. Customize colors, fonts, and layout to match your brand.
               </p>
             </div>
 
             {/* Step 3 */}
-            <div className="relative bg-white p-8 rounded-xl shadow-sm border-2 border-transparent hover:border-[#5b81ff] transition-colors">
+            <div className="relative bg-white p-6 sm:p-8 rounded-xl shadow-sm border-2 border-transparent hover:border-[#5b81ff] transition-colors">
               <div className="absolute -top-4 -left-4 w-12 h-12 bg-[#5b81ff] rounded-full flex items-center justify-center">
                 <span className="text-white">3</span>
               </div>
               <div className="mb-6 w-16 h-16 bg-[#5b81ff]/10 rounded-lg flex items-center justify-center">
                 <Code2 className="w-8 h-8 text-[#5b81ff]" />
               </div>
-              <h3 className="mb-3 text-[#1c1c60]">Paste the custom HTML code into your Website</h3>
-              <p className="text-[#717182]">
+              <h3 className="mb-3 text-[#1c1c60] text-lg sm:text-xl">Paste the custom HTML code into your Website</h3>
+              <p className="text-[#717182] text-sm sm:text-base">
                 Get a simple HTML snippet that works anywhere. No technical knowledge required—just copy and paste.
               </p>
             </div>
@@ -213,45 +304,68 @@ export const DIYLanding: React.FC<DIYLandingProps> = ({
         </div>
       </section>
 
-      {/* Customer Stories Carousel Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="mb-4 text-[#1c1c60]">What Our Customers Say</h2>
-            <p className="text-xl text-[#717182]">
-              Agricultural vendors who transformed their sales with social proof
-            </p>
-          </div>
-
-          <ThinkSidsCarousel stories={customerStories} />
-        </div>
-      </section>
-
       {/* Code Preview & Demo Section */}
-      <section className="py-24 bg-[#f3f3f3]">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="mb-4 text-[#1c1c60]">See It In Action</h2>
-            <p className="text-xl text-[#717182]">
+      <section className="py-16 sm:py-24 bg-[#f3f3f3]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="mb-3 sm:mb-4 text-[#1c1c60] text-2xl sm:text-3xl lg:text-[40px]">See It In Action</h2>
+            <p className="text-base sm:text-lg md:text-xl text-[#717182] px-2">
               This is what you'll plug in and what you'll see on your site
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8 items-start">
+          <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 items-start">
             {/* Code on the left */}
-            <div>
-              <h3 className="mb-4 text-[#1c1c60]">The Code</h3>
+            <div className="min-w-0">
+              <h3 className="mb-4 text-[#1c1c60] text-lg sm:text-xl">The Code</h3>
               <CodePreview code={sampleHTMLCode} />
             </div>
 
             {/* Preview on the right */}
-            <div>
-              <h3 className="mb-4 text-[#1c1c60]">The Result</h3>
-              <ImageWithFallback
-                src={carouselPreviewImage}
-                alt="Social proof carousel example showing farmer testimonials"
-                className="w-full rounded-lg shadow-lg"
-              />
+            <div className="min-w-0">
+              <h3 className="mb-4 text-[#1c1c60] text-lg sm:text-xl">The Platform</h3>
+              <p className="mb-6 text-[#717182] text-sm sm:text-base">
+                This custom code can be easily plugged into most website managers
+              </p>
+              
+              {/* 2x2 Grid of Platform Icons */}
+              <div className="grid grid-cols-2 gap-6 max-w-md mx-auto">
+                {/* WordPress */}
+                <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-center hover:shadow-lg transition-shadow">
+                  <ImageWithFallback
+                    src={image_066079ea76dbb1c4070b0fbcf6c6b88ae9766072}
+                    alt="WordPress"
+                    className="w-full h-24 object-contain"
+                  />
+                </div>
+                
+                {/* Shopify */}
+                <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-center hover:shadow-lg transition-shadow">
+                  <ImageWithFallback
+                    src={image_4a18ae42701be2fc15037d37d296a7ce66a36686}
+                    alt="Shopify"
+                    className="w-full h-24 object-contain"
+                  />
+                </div>
+                
+                {/* HTML */}
+                <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-center hover:shadow-lg transition-shadow">
+                  <ImageWithFallback
+                    src={image_f44254d0d6e22d9d926524de6c35bc2f7cf74b9b}
+                    alt="HTML"
+                    className="w-full h-24 object-contain grayscale"
+                  />
+                </div>
+                
+                {/* 4th Platform - Placeholder */}
+                <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-center hover:shadow-lg transition-shadow">
+                  <ImageWithFallback
+                    src={image_1e13ed9b8f1270426370ad9ff3f88e9cba33ecb8}
+                    alt="Platform 4"
+                    className="w-full h-24 object-contain"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -264,16 +378,19 @@ export const DIYLanding: React.FC<DIYLandingProps> = ({
         <div className="absolute inset-0 bg-gradient-to-tl from-[#5b81ff]/10 via-transparent to-transparent pointer-events-none" />
         
         {/* CTA Content */}
-        <div className="relative py-24 text-white">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            <h2 className="mb-6">Ready to boost your sales?</h2>
-            <p className="mb-8 text-xl text-white/80">
+        <div className="relative py-16 sm:py-24 text-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+            <h2 className="mb-4 sm:mb-6 text-2xl sm:text-3xl lg:text-[40px]">Ready to boost your sales?</h2>
+            <p className="mb-6 sm:mb-8 text-base sm:text-lg md:text-xl text-white/80 px-2">
               Join hundreds of agricultural vendors using social proof to convert more customers.
             </p>
             <Button 
               size="lg" 
-              className="bg-[#ebff82] text-[#1c1c60] hover:bg-[#ebff82]/90 px-8 py-6 text-lg group"
-              onClick={onNavigateToDIYCreate}
+              className="bg-[#ebff82] text-[#1c1c60] hover:bg-[#ebff82]/90 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg group"
+              onClick={() => {
+                trackDIYCreateStarted();
+                onNavigateToDIYCreate();
+              }}
             >
               Start now
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -283,8 +400,8 @@ export const DIYLanding: React.FC<DIYLandingProps> = ({
 
         {/* Footer */}
         <footer className="relative py-12 text-white border-t border-white/10">
-          <div className="max-w-7xl mx-auto px-6 text-center">
-            <p className="text-white/60">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
+            <p className="text-white/60 text-sm sm:text-base">
               © 2025 DIY Social Proof Carousel. Built for agricultural vendors who value trust.
             </p>
           </div>

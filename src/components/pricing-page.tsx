@@ -2,14 +2,15 @@ import image_cff0762a6794db634da4baa2ef71750dfd161e77 from 'figma:asset/cff0762a
 import React, { useState } from 'react';
 import { Navigation } from './Navigation';
 import { Footer } from './Footer';
-import { Button } from './ui/button';
+import { Button } from './ui/button-simple';
 import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { toast } from 'sonner@2.0.3';
+import { Label } from './ui/label-simple';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog-simple';
+import { toast } from './ui/sonner';
 import { getFreebieSupabaseClient } from '../utils/supabase/freebie-client';
 import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
 import { ArrowLeft, Check, Wrench, Handshake, Sparkles, X, AlertCircle, Loader2 } from 'lucide-react';
+import { trackDIWYCTAClicked, trackDIFYCTAClicked, trackPricingCTAClicked, trackPricingPageView } from '../utils/analytics';
 
 interface PricingPageProps {
   onNavigateHome: () => void;
@@ -31,6 +32,16 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
     setShowDialog(true);
     setEmailInput('');
     setEmailError('');
+    
+    // Track CTA clicks
+    const location = 'pricing_page_main_cards';
+    if (plan === 'diwy') {
+      trackDIWYCTAClicked(location, 'Book a call');
+    } else if (plan === 'dify') {
+      trackDIFYCTAClicked(location, 'Book a call');
+    } else if (plan === 'diy') {
+      trackPricingCTAClicked(plan, location);
+    }
   };
 
   // Close dialog
@@ -59,69 +70,89 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
     setIsLoading(true);
     setEmailError('');
 
+    // For DIWY/DIFY: Open calendar immediately, save to DB in background
+    if (selectedPlan === 'diwy' || selectedPlan === 'dify') {
+      // Open calendar first (don't block user experience)
+      window.open('https://calendar.notion.so/meet/santiagothinksid/flashcall', '_blank');
+      toast.success(`Opening calendar... Book a time that works for you! We'll follow up at ${trimmedEmail}`);
+      handleCloseDialog();
+      setIsLoading(false);
+
+      // Save to database in background (non-blocking)
+      saveLeadToDatabase(trimmedEmail, selectedPlan).catch(err => {
+        console.error('Background save failed (non-critical):', err);
+      });
+      
+      return;
+    }
+
+    // For DIY: Database save is critical (waitlist)
     try {
-      const supabase = getFreebieSupabaseClient();
-
-      // Check if lead already exists
-      const { data: existingLeads } = await supabase
-        .from('leads')
-        .select('*')
-        .eq('email', trimmedEmail)
-        .limit(1);
-
-      // Prepare update/insert data based on plan type
-      const leadData: any = {
-        email: trimmedEmail,
-      };
-
-      if (selectedPlan === 'diy') {
-        leadData.diy_clicked = true;
-        leadData.diy_requested = true;
-      } else if (selectedPlan === 'diwy') {
-        leadData.diwy_clicked = true;
-      } else if (selectedPlan === 'dify') {
-        leadData.dify_clicked = true;
-      }
-
-      if (existingLeads && existingLeads.length > 0) {
-        // Update existing lead
-        const { error } = await supabase
-          .from('leads')
-          .update(leadData)
-          .eq('email', trimmedEmail);
-
-        if (error) {
-          console.error('Supabase error updating lead:', error);
-          throw error;
-        }
-      } else {
-        // Insert new lead
-        leadData.created_at = new Date().toISOString();
-        const { error } = await supabase
-          .from('leads')
-          .insert(leadData);
-
-        if (error) {
-          console.error('Supabase error inserting lead:', error);
-          throw error;
-        }
-      }
-
-      // Handle success based on plan type
-      if (selectedPlan === 'diy') {
-        toast.success(`You're on the waitlist! We'll notify you at ${trimmedEmail} when the DIY tool launches.`);
-      } else {
-        // Open Calendly for DIWY/DIFY plans
-        window.open('https://calendar.notion.so/meet/santiagothinksid/5j8824oqb', '_blank');
-        toast.success(`Opening calendar... Book a time that works for you! We'll follow up at ${trimmedEmail}`);
-      }
-
+      await saveLeadToDatabase(trimmedEmail, selectedPlan);
+      toast.success(`You're on the waitlist! We'll notify you at ${trimmedEmail} when the DIY tool launches.`);
       handleCloseDialog();
     } catch (error) {
       console.error('Error submitting email:', error);
-      setEmailError('Failed to submit. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit. Please try again.';
+      setEmailError(errorMessage);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Separate function to save lead to database
+  const saveLeadToDatabase = async (email: string, plan: PlanType) => {
+    const supabase = getFreebieSupabaseClient();
+
+    // Check if lead already exists
+    const { data: existingLeads, error: selectError } = await supabase
+      .from('leads')
+      .select('*')
+      .eq('email', email)
+      .limit(1);
+
+    if (selectError) {
+      console.error('Supabase select error:', selectError);
+      // Continue anyway - we'll try to insert
+    }
+
+    // Prepare update/insert data based on plan type
+    const leadData: any = {
+      email: email,
+    };
+
+    // Set the appropriate _requestedat timestamp based on plan
+    const now = new Date().toISOString();
+    if (plan === 'diy') {
+      leadData.diy_requestedat = now;
+    } else if (plan === 'diwy') {
+      leadData.diwy_requestedat = now;
+    } else if (plan === 'dify') {
+      leadData.dify_requestedat = now;
+    }
+
+    if (existingLeads && existingLeads.length > 0) {
+      // Update existing lead
+      const { error } = await supabase
+        .from('leads')
+        .update(leadData)
+        .eq('email', email);
+
+      if (error) {
+        console.error('Supabase error updating lead:', error);
+        throw new Error('Database update failed. Please contact support.');
+      }
+    } else {
+      // Insert new lead
+      leadData.created_at = new Date().toISOString();
+      const { error } = await supabase
+        .from('leads')
+        .insert(leadData);
+
+      if (error) {
+        console.error('Supabase error inserting lead:', error);
+        throw new Error('Database insert failed. Please contact support.');
+      }
     }
   };
 
@@ -202,7 +233,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
 
               {/* Price */}
               <div className="text-[#5b81ff] text-center mb-4" style={{ fontSize: '48px', fontWeight: 'bold' }}>
-                $49.99
+                $49
               </div>
 
               {/* Description */}
@@ -260,7 +291,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
                 {[
                   'Bring your own testimonials',
                   'Professional storytelling assistance',
-                  'Customized HTML snippet',
+                  'Color customization in carousel',
                   'Implementation guidance'
                 ].map((feature, idx) => (
                   <div key={idx} className="flex items-start gap-3">
@@ -293,7 +324,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
 
               {/* Price */}
               <div className="text-[#5b81ff] text-center mb-4" style={{ fontSize: '48px', fontWeight: 'bold' }}>
-                $499-$999
+                $499-$1,499
               </div>
 
               {/* Description */}
@@ -307,7 +338,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
                   'Data collection from your clients',
                   'Custom storyline development',
                   'Professional social proof assets',
-                  'Complete HTML integration',
+                  'Fully customized carousel',
                   'Website deployment'
                 ].map((feature, idx) => (
                   <div key={idx} className="flex items-start gap-3">

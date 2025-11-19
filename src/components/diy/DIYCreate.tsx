@@ -5,13 +5,14 @@ import { useDIY } from '../../contexts/DIYContext';
 import { Testimonial } from '../../types/diy';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
-import { Checkbox } from '../ui/checkbox';
-import { Label } from '../ui/label';
-import { Button } from '../ui/button';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../ui/accordion';
+import { Checkbox } from '../ui/checkbox-simple';
+import { Label } from '../ui/label-simple';
+import { Button } from '../ui/button-simple';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../ui/accordion-simple';
 import { Plus, Trash2, Upload, AlertCircle, User, Image, FileText, AlertTriangle, CheckCircle2, Lightbulb, TrendingUp, MessageSquare } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from '../ui/sonner';
 import { getDIYSupabaseClient } from '../../utils/supabase/diy-client';
+import { trackDIYTestimonialAdded } from '../../utils/analytics';
 
 interface DIYCreateProps {
   onNavigateHome: () => void;
@@ -102,6 +103,21 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
       delete newErrors[`${id}-${field}`];
       return newErrors;
     });
+  };
+
+  // Helper function to check if a field still has sample/placeholder text
+  const isSampleText = (testimonialId: string, field: keyof Testimonial): boolean => {
+    const testimonial = testimonials.find(t => t.id === testimonialId);
+    if (!testimonial) return false;
+    
+    const currentValue = testimonial[field];
+    const sampleTestimonials = getSampleTestimonials();
+    const sampleTestimonial = sampleTestimonials.find(t => t.id === testimonialId);
+    
+    if (sampleTestimonial && currentValue === sampleTestimonial[field]) {
+      return true;
+    }
+    return false;
   };
 
   // Clear field on focus if it contains placeholder text
@@ -210,6 +226,7 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
     };
 
     setTestimonials([...testimonials, newTestimonial]);
+    trackDIYTestimonialAdded(testimonials.length + 1);
   };
 
   const removeTestimonial = (id: string) => {
@@ -370,7 +387,11 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                         value={testimonial.customer_name}
                         onChange={(e) => handleInputChange(testimonial.id, 'customer_name', e.target.value)}
                         placeholder="e.g., Sarah Johnson"
-                        className={`bg-white ${errors[`${testimonial.id}-customer_name`] ? 'border-red-500' : ''}`}
+                        className={`bg-white ${
+                          isSampleText(testimonial.id, 'customer_name') 
+                            ? 'text-gray-400' 
+                            : 'text-[#1c1c60]'
+                        } ${errors[`${testimonial.id}-customer_name`] ? 'border-red-500' : ''}`}
                         data-error={!!errors[`${testimonial.id}-customer_name`]}
                         onFocus={(e) => handleFieldFocus(testimonial.id, 'customer_name', e)}
                       />
@@ -389,7 +410,11 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                         value={testimonial.location}
                         onChange={(e) => handleInputChange(testimonial.id, 'location', e.target.value)}
                         placeholder="e.g., San Francisco, CA"
-                        className={`bg-white ${errors[`${testimonial.id}-location`] ? 'border-red-500' : ''}`}
+                        className={`bg-white ${
+                          isSampleText(testimonial.id, 'location') 
+                            ? 'text-gray-400' 
+                            : 'text-[#1c1c60]'
+                        } ${errors[`${testimonial.id}-location`] ? 'border-red-500' : ''}`}
                         data-error={!!errors[`${testimonial.id}-location`]}
                         onFocus={(e) => handleFieldFocus(testimonial.id, 'location', e)}
                       />
@@ -408,7 +433,11 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                         value={testimonial.product_service}
                         onChange={(e) => handleInputChange(testimonial.id, 'product_service', e.target.value)}
                         placeholder="e.g., Analytics Platform"
-                        className={`bg-white ${errors[`${testimonial.id}-product_service`] ? 'border-red-500' : ''}`}
+                        className={`bg-white ${
+                          isSampleText(testimonial.id, 'product_service') 
+                            ? 'text-gray-400' 
+                            : 'text-[#1c1c60]'
+                        } ${errors[`${testimonial.id}-product_service`] ? 'border-red-500' : ''}`}
                         data-error={!!errors[`${testimonial.id}-product_service`]}
                         onFocus={(e) => handleFieldFocus(testimonial.id, 'product_service', e)}
                       />
@@ -527,7 +556,11 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                             onChange={(e) => handleInputChange(testimonial.id, 'context', e.target.value)}
                             placeholder="Describe the customer's background and situation..."
                             rows={3}
-                            className={`mt-2 bg-white ${errors[`${testimonial.id}-context`] ? 'border-red-500' : ''}`}
+                            className={`mt-2 bg-white ${
+                              isSampleText(testimonial.id, 'context') 
+                                ? 'text-gray-400' 
+                                : 'text-[#1c1c60]'
+                            } ${errors[`${testimonial.id}-context`] ? 'border-red-500' : ''}`}
                             data-error={!!errors[`${testimonial.id}-context`]}
                             onFocus={(e) => handleFieldFocus(testimonial.id, 'context', e)}
                           />
@@ -563,7 +596,11 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                             onChange={(e) => handleInputChange(testimonial.id, 'problem', e.target.value)}
                             placeholder="What challenge or pain point were they facing?"
                             rows={3}
-                            className={`mt-2 bg-white ${errors[`${testimonial.id}-problem`] ? 'border-red-500' : ''}`}
+                            className={`mt-2 bg-white ${
+                              isSampleText(testimonial.id, 'problem') 
+                                ? 'text-gray-400' 
+                                : 'text-[#1c1c60]'
+                            } ${errors[`${testimonial.id}-problem`] ? 'border-red-500' : ''}`}
                             data-error={!!errors[`${testimonial.id}-problem`]}
                             onFocus={(e) => handleFieldFocus(testimonial.id, 'problem', e)}
                           />
@@ -599,7 +636,11 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                             onChange={(e) => handleInputChange(testimonial.id, 'solution', e.target.value)}
                             placeholder="How did your product/service solve their problem?"
                             rows={3}
-                            className={`mt-2 bg-white ${errors[`${testimonial.id}-solution`] ? 'border-red-500' : ''}`}
+                            className={`mt-2 bg-white ${
+                              isSampleText(testimonial.id, 'solution') 
+                                ? 'text-gray-400' 
+                                : 'text-[#1c1c60]'
+                            } ${errors[`${testimonial.id}-solution`] ? 'border-red-500' : ''}`}
                             data-error={!!errors[`${testimonial.id}-solution`]}
                             onFocus={(e) => handleFieldFocus(testimonial.id, 'solution', e)}
                           />
@@ -650,7 +691,11 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                             onChange={(e) => handleInputChange(testimonial.id, 'technical_result', e.target.value)}
                             placeholder="Quantifiable metrics and technical improvements..."
                             rows={3}
-                            className={`mt-2 bg-white ${errors[`${testimonial.id}-technical_result`] ? 'border-red-500' : ''}`}
+                            className={`mt-2 bg-white ${
+                              isSampleText(testimonial.id, 'technical_result') 
+                                ? 'text-gray-400' 
+                                : 'text-[#1c1c60]'
+                            } ${errors[`${testimonial.id}-technical_result`] ? 'border-red-500' : ''}`}
                             data-error={!!errors[`${testimonial.id}-technical_result`]}
                             onFocus={(e) => handleFieldFocus(testimonial.id, 'technical_result', e)}
                           />
@@ -686,7 +731,11 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                             onChange={(e) => handleInputChange(testimonial.id, 'meaningful_result', e.target.value)}
                             placeholder="Real-world impact and business outcomes..."
                             rows={3}
-                            className={`mt-2 bg-white ${errors[`${testimonial.id}-meaningful_result`] ? 'border-red-500' : ''}`}
+                            className={`mt-2 bg-white ${
+                              isSampleText(testimonial.id, 'meaningful_result') 
+                                ? 'text-gray-400' 
+                                : 'text-[#1c1c60]'
+                            } ${errors[`${testimonial.id}-meaningful_result`] ? 'border-red-500' : ''}`}
                             data-error={!!errors[`${testimonial.id}-meaningful_result`]}
                             onFocus={(e) => handleFieldFocus(testimonial.id, 'meaningful_result', e)}
                           />
@@ -729,7 +778,11 @@ export const DIYCreate: React.FC<DIYCreateProps> = ({
                           onChange={(e) => handleInputChange(testimonial.id, 'quote', e.target.value)}
                           placeholder="A powerful quote from the customer..."
                           rows={2}
-                          className={`mt-2 bg-white ${errors[`${testimonial.id}-quote`] ? 'border-red-500' : ''}`}
+                          className={`mt-2 bg-white ${
+                            isSampleText(testimonial.id, 'quote') 
+                              ? 'text-gray-400' 
+                              : 'text-[#1c1c60]'
+                          } ${errors[`${testimonial.id}-quote`] ? 'border-red-500' : ''}`}
                           data-error={!!errors[`${testimonial.id}-quote`]}
                           onFocus={(e) => handleFieldFocus(testimonial.id, 'quote', e)}
                         />

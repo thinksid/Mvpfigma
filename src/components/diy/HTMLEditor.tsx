@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '../ui/button';
+import { Button } from '../ui/button-simple';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
-import { Label } from '../ui/label';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { Label } from '../ui/label-simple';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion-simple';
 import { Eye, Code, Save, Loader2 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from '../ui/sonner';
 
 interface HTMLEditorProps {
   initialHTML: string;
