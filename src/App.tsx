@@ -14,7 +14,55 @@ import { DIYProvider } from './contexts/DIYContext';
 // Step 4: Adding DIY flow and Pricing components
 type Page = 'home' | 'thermometer-landing' | 'thermometer-preview' | 'thermometer-report' | 'diy-landing' | 'diy-create' | 'diy-preview' | 'diy-download' | 'pricing';
 
+// Sitemap component that renders XML
+function Sitemap() {
+  React.useEffect(() => {
+    // Set the content type to XML
+    const meta = document.createElement('meta');
+    meta.httpEquiv = 'Content-Type';
+    meta.content = 'application/xml';
+    document.head.appendChild(meta);
+  }, []);
+
+  return (
+    <div style={{ fontFamily: 'monospace', whiteSpace: 'pre' }}>
+      {`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://thinksid.co/</loc>
+    <lastmod>2025-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://thinksid.co/thermometer</loc>
+    <lastmod>2025-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://thinksid.co/diy</loc>
+    <lastmod>2025-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://thinksid.co/pricing</loc>
+    <lastmod>2025-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>`}
+    </div>
+  );
+}
+
 export default function App() {
+  // Check if this is a sitemap request
+  if (window.location.pathname === '/sitemap.xml') {
+    return <Sitemap />;
+  }
+
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [scanId, setScanId] = useState<string | null>(null);
   

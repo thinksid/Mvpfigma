@@ -66,6 +66,41 @@ app.get("/sitemap.xml", (c) => {
   });
 });
 
+// Sitemap.xml endpoint with prefix (accessible via Supabase Functions)
+app.get("/make-server-1da61fc8/sitemap.xml", (c) => {
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://thinksid.co/</loc>
+    <lastmod>2025-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://thinksid.co/thermometer</loc>
+    <lastmod>2025-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://thinksid.co/diy</loc>
+    <lastmod>2025-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://thinksid.co/pricing</loc>
+    <lastmod>2025-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>`;
+  
+  return c.text(sitemap, 200, {
+    'Content-Type': 'application/xml',
+  });
+});
+
 // Health check endpoint
 app.get("/make-server-1da61fc8/health", (c) => {
   return c.json({ status: "ok" });
