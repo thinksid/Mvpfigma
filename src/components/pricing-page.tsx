@@ -1,4 +1,4 @@
-import image_cff0762a6794db634da4baa2ef71750dfd161e77 from '../assets/cff0762a6794db634da4baa2ef71750dfd161e77.png';
+import image_cff0762a6794db634da4baa2ef71750dfd161e77 from 'figma:asset/cff0762a6794db634da4baa2ef71750dfd161e77.png';
 import React, { useState } from 'react';
 import { Navigation } from './Navigation';
 import { Footer } from './Footer';
@@ -8,9 +8,9 @@ import { Label } from './ui/label-simple';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog-simple';
 import { toast } from './ui/sonner';
 import { getFreebieSupabaseClient } from '../utils/supabase/freebie-client';
-import logo from '../assets/d2305a08b87429395ab71a84cfa59ed81967566b.png';
+import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
 import { ArrowLeft, Check, Wrench, Handshake, Sparkles, X, AlertCircle, Loader2 } from 'lucide-react';
-import { trackDIYWCTAClicked, trackDIFYCTAClicked, trackPricingCTAClicked, trackPricingPageView } from '../utils/analytics';
+import { trackDIWYCTAClicked, trackDIFYCTAClicked, trackPricingCTAClicked, trackPricingPageView } from '../utils/analytics';
 
 interface PricingPageProps {
   onNavigateHome: () => void;
@@ -36,11 +36,11 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
     // Track CTA clicks
     const location = 'pricing_page_main_cards';
     if (plan === 'diwy') {
-      trackDIYWCTAClicked();
+      trackDIWYCTAClicked(location, 'Book a call');
     } else if (plan === 'dify') {
-      trackDIFYCTAClicked();
+      trackDIFYCTAClicked(location, 'Book a call');
     } else if (plan === 'diy') {
-      trackPricingCTAClicked();
+      trackPricingCTAClicked(plan, location);
     }
   };
 
@@ -258,7 +258,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
               {/* CTA Button */}
               <Button
                 onClick={onNavigateToDIY}
-                className="w-full h-12 bg-[#ebff82] text-[#1c1c60] hover:bg-[#e0f570] hover:-translate-y-0.5 hover:shadow-lg rounded-lg transition-all duration-150"
+                className="w-full h-12 bg-[#ebff82] !text-[#1c1c60] hover:bg-[#e0f570] hover:-translate-y-0.5 hover:shadow-lg rounded-lg transition-all duration-150"
               >
                 Start Now
               </Button>
@@ -304,7 +304,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
               {/* CTA Button */}
               <Button
                 onClick={() => handlePlanClick('diwy')}
-                className="w-full h-12 bg-[#ebff82] text-[#1c1c60] hover:bg-[#e0f570] hover:-translate-y-0.5 hover:shadow-lg rounded-lg transition-all duration-150"
+                className="w-full h-12 bg-[#ebff82] !text-[#1c1c60] hover:bg-[#e0f570] hover:-translate-y-0.5 hover:shadow-lg rounded-lg transition-all duration-150"
               >
                 Book a call
               </Button>
@@ -351,7 +351,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
               {/* CTA Button */}
               <Button
                 onClick={() => handlePlanClick('dify')}
-                className="w-full h-12 bg-[#ebff82] text-[#1c1c60] hover:bg-[#e0f570] hover:-translate-y-0.5 hover:shadow-lg rounded-lg transition-all duration-150"
+                className="w-full h-12 bg-[#ebff82] !text-[#1c1c60] hover:bg-[#e0f570] hover:-translate-y-0.5 hover:shadow-lg rounded-lg transition-all duration-150"
               >
                 Book a call
               </Button>
@@ -445,7 +445,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onNavigateHome, onNavigateToD
               <Button
                 onClick={handleSubmitEmail}
                 disabled={isLoading}
-                className="flex-1 h-12 bg-[#ebff82] text-[#1c1c60] hover:bg-[#e0f570] rounded-lg"
+                className="flex-1 h-12 bg-[#ebff82] !text-[#1c1c60] hover:bg-[#e0f570] rounded-lg"
               >
                 {isLoading ? (
                   <>

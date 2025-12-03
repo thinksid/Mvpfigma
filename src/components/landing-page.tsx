@@ -6,8 +6,8 @@ import { Checkbox } from './ui/checkbox-simple';
 import { Label } from './ui/label-simple';
 import { Navigation } from './Navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import logo from '../assets/d2305a08b87429395ab71a84cfa59ed81967566b.png';
-import newLogo from '../assets/logo.png';
+import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
+import newLogo from 'figma:asset/new-uploaded-logo.png';
 import { trackThermometerStart, trackThermometerURLSubmitted } from '../utils/analytics';
 
 interface LandingPageProps {
@@ -60,7 +60,7 @@ export function LandingPage({
 
     // Pass URL to processing page
     onSuccess(trimmedUrl);
-    trackThermometerURLSubmitted();
+    trackThermometerURLSubmitted(trimmedUrl);
   };
 
   return (
@@ -177,7 +177,7 @@ export function LandingPage({
                 {/* Submit Button */}
                 <Button
                   type="submit"
-                  className="w-full h-14 bg-[#ebff82] hover:bg-[#e0f570] text-[#1c1c60] rounded-lg shadow-md hover:shadow-lg transition-all group"
+                  className="w-full h-14 bg-[#ebff82] hover:bg-[#e0f570] !text-[#1c1c60] rounded-lg shadow-md hover:shadow-lg transition-all group"
                   style={{ fontSize: '16px', fontWeight: '700' }}
                 >
                   Analyze Website

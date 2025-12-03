@@ -1,5 +1,9 @@
+import React, { useState, useEffect } from 'react';
+import { Navigation } from '../Navigation';
+import { Loader2 } from 'lucide-react';
 import { toast } from '../ui/sonner';
 import { useDIY } from '../../contexts/DIYContext';
+import { Progress } from '../ui/progress-simple';
 
 interface GenerationResponse {
   generation_id: string;

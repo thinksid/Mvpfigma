@@ -7,6 +7,7 @@ import { useDIY } from '../../contexts/DIYContext';
 import { Navigation } from '../Navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs-simple';
 import { trackDIYPaymentCompleted, trackDIYCodeDownloaded } from '../../utils/analytics';
+import { DebugInfo } from './DebugInfo';
 
 // ✅ YOUR REAL CREDENTIALS
 const SUPABASE_URL = 'https://dbojiegvkyvbmbivmppi.supabase.co';
@@ -22,7 +23,7 @@ interface DIYDownloadProps {
   onNavigateToPricing: () => void;
 }
 
-export const DIYDownload: React.FC<DIYDownloadProps> = ({
+export const DIYDownload: React.FC<DIYDownloadProps> = (({
   sessionId: propSessionId,
   generationId: propGenerationId,
   onNavigateHome,
@@ -30,6 +31,14 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
   onNavigateToDIY,
   onNavigateToPricing,
 }) => {
+  console.log('🚀 ========== DIYDownload COMPONENT MOUNTED ==========');
+  console.log('📅 Timestamp:', new Date().toISOString());
+  console.log('🔍 Props:', { propSessionId, propGenerationId });
+  console.log('🌐 window.location:', window.location.href);
+  console.log('🔍 window.location.pathname:', window.location.pathname);
+  console.log('🔍 window.location.search:', window.location.search);
+  console.log('====================================================');
+
   const { generationId: contextGenerationId, htmlCode: contextHtmlCode } = useDIY();
   const [sessionId, setSessionId] = useState<string | null>(propSessionId || null);
   const [generationId, setGenerationId] = useState<string | null>(propGenerationId || null);
@@ -41,44 +50,104 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
   const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
-    // Get parameters from URL if not provided via props
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlGenerationId = urlParams.get('id'); // ✅ Simple 'id' parameter from Stripe redirect
-    const localStorageId = localStorage.getItem('pending_generation_id'); // ✅ Fallback from localStorage
-
-    console.log('🔍 DIYDownload - Looking for generation ID...');
-    console.log('  - URL id parameter:', urlGenerationId);
-    console.log('  - localStorage generation ID:', localStorageId);
-    console.log('  - Context generation ID:', contextGenerationId);
-
-    // Use URL parameter first, then localStorage, then context, then props
-    const finalGenerationId = urlGenerationId || localStorageId || contextGenerationId || propGenerationId;
-
-    if (finalGenerationId) {
-      console.log('✅ Found generation ID:', finalGenerationId);
-      setGenerationId(finalGenerationId);
+    console.log('🎯 ========== DIYDownload useEffect TRIGGERED ==========');
+    
+    try {
+      // Get parameters from URL if not provided via props
+      const urlParams = new URLSearchParams(window.location.search);
+      const hash = window.location.hash;
       
-      // Clear localStorage after retrieving
-      if (localStorageId) {
-        localStorage.removeItem('pending_generation_id');
-        console.log('🧹 Cleared localStorage generation ID');
+      // ✅ CRITICAL: Support BOTH hash-based (?id=xxx in hash) AND path-based routing
+      let urlGenerationId = urlParams.get('id'); // Check regular URL params first
+      
+      // If hash exists and contains query params, parse those
+      if (hash && hash.includes('?')) {
+        const hashQueryString = hash.split('?')[1];
+        const hashParams = new URLSearchParams(hashQueryString);
+        const hashId = hashParams.get('id');
+        if (hashId) {
+          urlGenerationId = hashId; // Use hash ID if found
+        }
       }
       
-      loadGenerationData(finalGenerationId);
-    } else {
-      console.log('⚠️ No generation ID found - checking for test mode');
-      // Check if we have context data (test mode / dev skip)
-      const hasContextData = contextGenerationId && contextHtmlCode;
-      
-      if (hasContextData) {
-        console.log('✅ Using context data (test mode)');
-        setIsTestMode(true);
-        loadFromContext();
+      const localStorageId = localStorage.getItem('pending_generation_id'); // ✅ Fallback from localStorage
+      const sessionStorageId = sessionStorage.getItem('pending_generation_id'); // ✅ Fallback from sessionStorage
+
+      console.log('🔍 DIYDownload - Looking for generation ID...');
+      console.log('  - URL id parameter:', urlGenerationId);
+      console.log('  - Hash:', hash);
+      console.log('  - localStorage generation ID:', localStorageId);
+      console.log('  - sessionStorage generation ID:', sessionStorageId);
+      console.log('  - Context generation ID:', contextGenerationId);
+      console.log('  - Prop generation ID:', propGenerationId);
+      console.log('  - Full window.location.href:', window.location.href);
+      console.log('  - window.location.search:', window.location.search);
+      console.log('  - window.location.pathname:', window.location.pathname);
+      console.log('  - window.location.hash:', window.location.hash);
+
+      // Use URL parameter first, then localStorage, then sessionStorage, then context, then props
+      const finalGenerationId = urlGenerationId || localStorageId || sessionStorageId || contextGenerationId || propGenerationId;
+
+      if (finalGenerationId) {
+        console.log('✅ Found generation ID:', finalGenerationId);
+        setGenerationId(finalGenerationId);
+        
+        // Clear localStorage after retrieving
+        if (localStorageId) {
+          localStorage.removeItem('pending_generation_id');
+          console.log('🧹 Cleared localStorage generation ID');
+        }
+        
+        // Clear sessionStorage after retrieving
+        if (sessionStorageId) {
+          sessionStorage.removeItem('pending_generation_id');
+          console.log('🧹 Cleared sessionStorage generation ID');
+        }
+        
+        loadGenerationData(finalGenerationId);
       } else {
-        console.error('❌ No generation ID and no context data');
-        toast.error('No carousel found. Please create one first.');
-        onNavigateToDIY();
+        console.error('❌ ========== NO GENERATION ID FOUND ==========');
+        console.error('   This usually means:');
+        console.error('   1. Stripe did not include the generation ID in the redirect URL');
+        console.error('   2. localStorage did not persist the generation ID');
+        console.error('   3. User navigated directly to /diy-download without going through the flow');
+        console.error('   4. URL parameters were stripped during redirect');
+        console.error('');
+        console.error('   Debugging info:');
+        console.error('   - URL params object:', Object.fromEntries(urlParams));
+        console.error('   - localStorage keys:', Object.keys(localStorage));
+        console.error('   - sessionStorage keys:', Object.keys(sessionStorage));
+        console.error('   - Context has data:', !!contextGenerationId);
+        console.error('================================================');
+        
+        // Check if we have context data (test mode / dev skip)
+        const hasContextData = contextGenerationId && contextHtmlCode;
+        
+        if (hasContextData) {
+          console.log('✅ Using context data (test mode)');
+          setIsTestMode(true);
+          loadFromContext();
+        } else {
+          console.error('❌ No generation ID and no context data - cannot proceed');
+          toast.error('No carousel found. Please create one first.');
+          setIsLoading(false);
+          
+          // Redirect to DIY landing after 3 seconds
+          setTimeout(() => {
+            console.log('⏰ Redirecting to DIY landing page...');
+            onNavigateToDIY();
+          }, 3000);
+        }
       }
+    } catch (error) {
+      console.error('💥 ========== ERROR IN DIYDownload useEffect ==========');
+      console.error('Error:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+      console.error('======================================================');
+      
+      toast.error('Failed to load download page. Please try again.');
+      setIsLoading(false);
     }
   }, []);
 
@@ -222,6 +291,12 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Debug Info Panel */}
+      <DebugInfo 
+        generationId={generationId} 
+        contextData={{ generationId: contextGenerationId, htmlCode: contextHtmlCode }} 
+      />
+      
       {/* Navigation */}
       <Navigation
         onNavigateHome={onNavigateHome}
@@ -410,6 +485,6 @@ export const DIYDownload: React.FC<DIYDownloadProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default DIYDownload;

@@ -3,6 +3,7 @@ import { Card } from './ui/card';
 import { Progress } from './ui/progress-simple';
 import { Loader2 } from 'lucide-react';
 import { toast } from './ui/sonner';
+import { Navigation } from './Navigation';
 
 interface ThermometerProcessingProps {
   url: string;

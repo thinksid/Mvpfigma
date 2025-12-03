@@ -4,11 +4,11 @@ import { Button } from '../ui/button-simple';
 import { ThinkSidsCarousel } from '../ThinkSidsCarousel';
 import { CodePreview } from '../CodePreview';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
-import carouselPreviewImage from '../../assets/00ba47538c52501c3f143a608514979f2c1f6213.png';
-import image_066079ea76dbb1c4070b0fbcf6c6b88ae9766072 from '../../assets/066079ea76dbb1c4070b0fbcf6c6b88ae9766072.png';
-import image_4a18ae42701be2fc15037d37d296a7ce66a36686 from '../../assets/4a18ae42701be2fc15037d37d296a7ce66a36686.png';
-import image_f44254d0d6e22d9d926524de6c35bc2f7cf74b9b from '../../assets/f44254d0d6e22d9d926524de6c35bc2f7cf74b9b.png';
-import image_1e13ed9b8f1270426370ad9ff3f88e9cba33ecb8 from '../../assets/1e13ed9b8f1270426370ad9ff3f88e9cba33ecb8.png';
+import carouselPreviewImage from 'figma:asset/00ba47538c52501c3f143a608514979f2c1f6213.png';
+import image_066079ea76dbb1c4070b0fbcf6c6b88ae9766072 from 'figma:asset/066079ea76dbb1c4070b0fbcf6c6b88ae9766072.png';
+import image_4a18ae42701be2fc15037d37d296a7ce66a36686 from 'figma:asset/4a18ae42701be2fc15037d37d296a7ce66a36686.png';
+import image_f44254d0d6e22d9d926524de6c35bc2f7cf74b9b from 'figma:asset/f44254d0d6e22d9d926524de6c35bc2f7cf74b9b.png';
+import image_1e13ed9b8f1270426370ad9ff3f88e9cba33ecb8 from 'figma:asset/1e13ed9b8f1270426370ad9ff3f88e9cba33ecb8.png';
 import { trackDIYStart, trackDIYCreateStarted } from '../../utils/analytics';
 
 interface DIYLandingProps {
@@ -152,13 +152,13 @@ export const DIYLanding: React.FC<DIYLandingProps> = ({
           </p>
           <Button 
             size="lg" 
-            className="bg-[#ebff82] text-[#1c1c60] hover:bg-[#ebff82]/90 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg group"
+            className="bg-[#ebff82] !text-[#1c1c60] hover:bg-[#ebff82]/90 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg group"
             onClick={() => {
               trackDIYStart();
               onNavigateToDIYCreate();
             }}
           >
-            Start now
+            Create Your Carousel
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
@@ -392,7 +392,7 @@ export const DIYLanding: React.FC<DIYLandingProps> = ({
                 onNavigateToDIYCreate();
               }}
             >
-              Start now
+              Start Creating
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>

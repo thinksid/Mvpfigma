@@ -43,6 +43,7 @@
   --sidebar-ring: oklch(0.708 0 0);
   --highlight-1: #5b81ff;
   --highlight-2: #ebff82;
+  --yellow-foreground: #1c1c60;
 }
 
 .dark {

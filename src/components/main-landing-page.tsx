@@ -3,8 +3,8 @@ import { ArrowRight, TrendingUp, Wrench, Sparkles, Check, Linkedin, Twitter } fr
 import { Button } from './ui/button-simple';
 import { Navigation } from './Navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import logo from '../assets/d2305a08b87429395ab71a84cfa59ed81967566b.png';
-import image_cff0762a6794db634da4baa2ef71750dfd161e77 from '../assets/cff0762a6794db634da4baa2ef71750dfd161e77.png';
+import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
+import image_cff0762a6794db634da4baa2ef71750dfd161e77 from 'figma:asset/cff0762a6794db634da4baa2ef71750dfd161e77.png';
 import { ThinkSidsCarousel } from './ThinkSidsCarousel';
 import { customerStories } from './diy/DIYLanding';
 

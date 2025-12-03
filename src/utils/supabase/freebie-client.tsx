@@ -75,6 +75,32 @@ export function getFreebieSupabaseClient() {
         return result;
       };
 
+      let updateValues: any = null;
+      let insertValues: any = null;
+
+      const executeUpdate = async () => {
+        const filterParams: string[] = [];
+        filters.forEach(f => {
+          filterParams.push(`${encodeURIComponent(f.col)}=${encodeURIComponent(f.op)}.${encodeURIComponent(f.val)}`);
+        });
+        const url = `${FREEBIE_URL}/rest/v1/${table}?${filterParams.join('&')}`;
+        return makeRequest('PATCH', url, {
+          'apikey': freebiePublicAnonKey,
+          'Authorization': `Bearer ${freebiePublicAnonKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        }, JSON.stringify(updateValues));
+      };
+
+      const executeInsert = async () => {
+        return makeRequest('POST', `${FREEBIE_URL}/rest/v1/${table}`, {
+          'apikey': freebiePublicAnonKey,
+          'Authorization': `Bearer ${freebiePublicAnonKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        }, JSON.stringify(insertValues));
+      };
+
       const builder: any = {
         select: (fields?: string) => {
           selectFields = fields || '*';
@@ -102,24 +128,20 @@ export function getFreebieSupabaseClient() {
           return builder;
         },
         then: (onfulfilled: any, onrejected?: any) => {
+          if (updateValues !== null) {
+            return executeUpdate().then(onfulfilled, onrejected);
+          } else if (insertValues !== null) {
+            return executeInsert().then(onfulfilled, onrejected);
+          }
           return execute().then(onfulfilled, onrejected);
         },
         insert: (values: any) => {
-          return makeRequest('POST', `${FREEBIE_URL}/rest/v1/${table}`, {
-            'apikey': freebiePublicAnonKey,
-            'Authorization': `Bearer ${freebiePublicAnonKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation',
-          }, JSON.stringify(values));
+          insertValues = values;
+          return builder;
         },
         update: (values: any) => {
-          const url = `${FREEBIE_URL}/rest/v1/${table}?${buildQuery()}`;
-          return makeRequest('PATCH', url, {
-            'apikey': freebiePublicAnonKey,
-            'Authorization': `Bearer ${freebiePublicAnonKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation',
-          }, JSON.stringify(values));
+          updateValues = values;
+          return builder;
         },
       };
 

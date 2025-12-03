@@ -268,6 +268,10 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
         throw new Error('Failed to save vendor information');
       }
 
+      // ✅ CRITICAL: Store generation ID in localStorage for Stripe Buy Button redirect
+      localStorage.setItem('pending_generation_id', generationId);
+      console.log('✅ Stored generation ID in localStorage:', generationId);
+
       console.log('✅ Vendor info saved successfully');
       toast.success('Information saved! You can now proceed to checkout.');
       
@@ -300,12 +304,18 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
       console.log('  - Generation ID:', generationId);
       console.log('  - Server URL:', SERVER_URL);
 
-      // Build the success URL with generation_id - simple query param
-      const successUrl = `${window.location.origin}/diy-download?id=${generationId}`;
-      const cancelUrl = `${window.location.origin}/diy-preview?id=${generationId}`;
+      // ✅ CRITICAL: Use HASH-based routing for GoDaddy compatibility
+      // Hash routing works without server configuration
+      const successUrl = `${window.location.origin}/#/diy-download?id=${generationId}`;
+      const cancelUrl = `${window.location.origin}/#/diy-preview?id=${generationId}`;
 
-      console.log('  - Success URL:', successUrl);
-      console.log('  - Cancel URL:', cancelUrl);
+      console.log('  - Success URL (HASH-BASED):', successUrl);
+      console.log('  - Cancel URL (HASH-BASED):', cancelUrl);
+      
+      // ✅ CRITICAL: Store in multiple places for maximum reliability
+      localStorage.setItem('pending_generation_id', generationId);
+      sessionStorage.setItem('pending_generation_id', generationId);
+      console.log('✅ Stored generation ID in localStorage AND sessionStorage:', generationId);
 
       const response = await fetch(`${SERVER_URL}/stripe/create-checkout-session`, {
         method: 'POST',
@@ -522,7 +532,7 @@ export const DIYPreview: React.FC<DIYPreviewProps> = ({
                 <Button
                   onClick={handleSaveVendorInfo}
                   disabled={!isFormValid() || isSavingVendorInfo || isVendorInfoSaved}
-                  className="w-full max-w-md bg-[#5b81ff] text-white hover:bg-[#4a6fe0] disabled:bg-gray-300 disabled:text-gray-500"
+                  className="w-full max-w-md bg-[#ebff82] !text-[#1c1c60] hover:bg-[#e0f570] disabled:bg-gray-300 disabled:text-gray-500"
                 >
                   {isSavingVendorInfo ? (
                     <>

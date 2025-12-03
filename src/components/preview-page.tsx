@@ -9,6 +9,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, Dr
 import { Progress } from './ui/progress-simple';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { trackThermometerReportPreviewed, trackThermometerReportUnlocked } from '../utils/analytics';
+import reportMainImage from 'figma:asset/68e8700d46218dcd58aeb2ee0583aac11b87479a.png';
+import unlockButtonImage from 'figma:asset/7c9209bb39cd5c2044a3e3834b9348d12a9dc0be.png';
 
 interface PreviewPageProps {
   data: {
@@ -146,7 +148,7 @@ export function PreviewPage({
 
   // Form content (shared between Dialog and Drawer)
   const formContent = (
-    <div className="space-y-6">
+    <div className="space-y-6 px-6 pb-6">
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name Input */}
@@ -277,38 +279,29 @@ export function PreviewPage({
         {/* SECTION 2: UNLOCK CTA CARD */}
         <div className="bg-[rgb(255,255,255)] border border-[#1c1c60] rounded-xl p-6 md:p-10">
           <div className="flex flex-col md:flex-row items-center gap-8">
-            {/* Image Preview - Hidden on mobile */}
-            <div className="hidden md:block md:w-1/4 flex-shrink-0">
-              <div className="relative w-full">
-                <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1722336450188-8d3fb3a5b2cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRyYW5zcGFyZW50JTIwZ3JhZGllbnR8ZW58MXx8fHwxNzYyMzg1Njk4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                  alt="Report preview"
-                  className="rounded-lg shadow-lg w-full"
-                />
-                <div className="absolute -bottom-4 -right-4 w-2/3 grid grid-cols-3 gap-1">
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1722336450188-8d3fb3a5b2cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRyYW5zcGFyZW50JTIwZ3JhZGllbnR8ZW58MXx8fHwxNzYyMzg1Njk4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                    alt="Report preview"
-                    className="rounded shadow-md col-span-1"
-                  />
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1722336450188-8d3fb3a5b2cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRyYW5zcGFyZW50JTIwZ3JhZGllbnR8ZW58MXx8fHwxNzYyMzg1Njk4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                    alt="Report preview"
-                    className="rounded shadow-md col-span-1"
-                  />
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1722336450188-8d3fb3a5b2cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRyYW5zcGFyZW50JTIwZ3JhZGllbnR8ZW58MXx8fHwxNzYyMzg1Njk4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                    alt="Report preview"
-                    className="rounded shadow-md col-span-1"
-                  />
-                </div>
-              </div>
+            {/* Report Screenshots Preview - Hidden on mobile */}
+            <div className="hidden md:flex md:w-2/5 flex-shrink-0 gap-2">
+              <ImageWithFallback
+                src="https://oqjgvzaedlwarmyjlsoz.supabase.co/storage/v1/object/sign/wensite%20images/Screenshot%202025-11-26%20at%201.04.11%20PM.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zNmRjMTg3My1mODg0LTQwYmMtOGJiYS03MzNlZWU5YWM4YzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZW5zaXRlIGltYWdlcy9TY3JlZW5zaG90IDIwMjUtMTEtMjYgYXQgMS4wNC4xMSBQTS5wbmciLCJpYXQiOjE3NjQxODAzOTQsImV4cCI6MjA3OTU0MDM5NH0.oWMq-xF0t0SShRjeF1jTjrOp1X2PwSlcXe-F6C1AV4Q"
+                alt="Report preview 1"
+                className="rounded-lg shadow-md w-1/3 object-cover"
+              />
+              <ImageWithFallback
+                src="https://oqjgvzaedlwarmyjlsoz.supabase.co/storage/v1/object/sign/wensite%20images/Screenshot%202025-11-26%20at%201.04.21%20PM.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zNmRjMTg3My1mODg0LTQwYmMtOGJiYS03MzNlZWU5YWM4YzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZW5zaXRlIGltYWdlcy9TY3JlZW5zaG90IDIwMjUtMTEtMjYgYXQgMS4wNC4yMSBQTS5wbmciLCJpYXQiOjE3NjQxODA0MTIsImV4cCI6MTc5NTcxNjQxMn0.IqyuSVbrex2OL_4MEiN1-OOcCOnbuQRonnw-IRSjaeU"
+                alt="Report preview 2"
+                className="rounded-lg shadow-md w-1/3 object-cover"
+              />
+              <ImageWithFallback
+                src="https://oqjgvzaedlwarmyjlsoz.supabase.co/storage/v1/object/sign/wensite%20images/Screenshot%202025-11-26%20at%201.04.32%20PM.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zNmRjMTg3My1mODg0LTQwYmMtOGJiYS03MzNlZWU5YWM4YzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZW5zaXRlIGltYWdlcy9TY3JlZW5zaG90IDIwMjUtMTEtMjYgYXQgMS4wNC4zMiBQTS5wbmciLCJpYXQiOjE3NjQxODA0MTksImV4cCI6MTc5NTcxNjQxOX0.F8FM7epF8SWcoSCssX9J0Hg5FVrBJOxeBPKgX59Qk44"
+                alt="Report preview 3"
+                className="rounded-lg shadow-md w-1/3 object-cover"
+              />
             </div>
 
             {/* Text Content */}
             <div className="flex-1 text-center md:text-left">
               <h2 className="text-[rgb(28,28,96)] mb-3">Get Your Report For Free</h2>
-              <p className="text-[#1c1c60]" style={{ fontSize: '16px', lineHeight: '1.6' }}>
+              <p className="text-[#1c1c60] text-base leading-relaxed">
                 Unlock detailed insights, evidence-based scores for each dimension, and actionable recommendations to improve your website
               </p>
             </div>
@@ -317,8 +310,9 @@ export function PreviewPage({
             <div className="w-full md:w-auto md:flex-shrink-0">
               <Button
                 onClick={handleUnlockClick}
-                className="w-full md:w-auto md:min-w-[200px] h-14 bg-[#ebff82] hover:bg-[#e0f570] text-[#1c1c60] rounded-lg shadow-md hover:shadow-lg transition-all"
+                className="w-full md:w-auto bg-[#ebff82] hover:bg-[#d4e66f] text-[#1c1c60] !text-[#1c1c60] px-8 py-3 rounded-lg font-semibold whitespace-nowrap"
               >
+                <Lock className="mr-2 h-5 w-5" />
                 Unlock Report
               </Button>
             </div>
@@ -327,14 +321,14 @@ export function PreviewPage({
 
         {/* SECTION 3: TOP FINDINGS CARD */}
         <div className="bg-white border border-[#1c1c60] rounded-xl p-6 md:p-8">
-          <h2 className="text-[#1c1c60] mb-6 font-bold">A few takeaways from the full report</h2>
+          <h2 className="text-[#1c1c60] mb-6 font-semibold">A few takeaways from the full report</h2>
 
           {/* Findings List */}
           <div className="space-y-4 mb-6">
             {data.preview.top3.map((finding, index) => (
               <div key={index} className="flex items-start gap-3">
                 <div className="h-2 w-2 rounded-full bg-[#5b81ff] flex-shrink-0 mt-2" />
-                <p className="text-[#475569]" style={{ fontSize: '18px' }}>
+                <p className="text-[#475569] text-base leading-relaxed">
                   {finding}
                 </p>
               </div>

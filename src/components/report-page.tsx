@@ -522,7 +522,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               onClick={handleDIYStart}
-              className="bg-[#ebff82] hover:bg-[#d4e86f] text-[#1c1c60] h-14 px-10 rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
+              className="bg-[#ebff82] hover:bg-[#d4e86f] text-[#1c1c60] !text-[#1c1c60] h-14 px-10 rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
               style={{ fontSize: '16px', fontWeight: 'bold' }}
             >
               Start Building for $49.99
@@ -762,7 +762,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ data, onNavigateToPricing, onNa
               <Button
                 onClick={handleConfirmEmail}
                 disabled={isEmailLoading}
-                className="flex-1 h-12 bg-[#ebff82] text-[#1c1c60] hover:bg-[#e0f570] rounded-lg"
+                className="flex-1 h-12 bg-[#ebff82] !text-[#1c1c60] hover:bg-[#e0f570] rounded-lg"
               >
                 {isEmailLoading ? (
                   <>

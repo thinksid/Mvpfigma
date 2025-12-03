@@ -147,18 +147,10 @@ export const HomePage: React.FC<HomePageProps> = ({
             <Button 
               onClick={onNavigateToPricing}
               size="lg" 
-              className="bg-[#ebff82] text-[#1c1c60] hover:bg-[#ebff82]/90 px-8 py-6 text-lg group"
+              className="bg-[#ebff82] !text-[#1c1c60] hover:bg-[#ebff82]/90 px-8 py-6 text-lg group"
             >
               Start now
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button 
-              onClick={onNavigateToPricing}
-              size="lg" 
-              variant="outline"
-              className="bg-transparent border-2 border-white text-white hover:bg-white/10 px-8 py-6 text-lg"
-            >
-              View Pricing
             </Button>
           </div>
         </div>
@@ -347,7 +339,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             <Button 
               onClick={onNavigateToPricing}
               size="lg" 
-              className="bg-[#ebff82] text-[#1c1c60] hover:bg-[#ebff82]/90 px-8 py-6 text-lg group"
+              className="bg-[#ebff82] !text-[#1c1c60] hover:bg-[#ebff82]/90 px-8 py-6 text-lg group"
             >
               Start now
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
