@@ -6,8 +6,8 @@ import { Checkbox } from './ui/checkbox-simple';
 import { Label } from './ui/label-simple';
 import { Navigation } from './Navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
-import newLogo from 'figma:asset/new-uploaded-logo.png';
+import logo from '../assets/d2305a08b87429395ab71a84cfa59ed81967566b.png';
+import newLogo from '../assets/logo.png';
 import { trackThermometerStart, trackThermometerURLSubmitted } from '../utils/analytics';
 
 interface LandingPageProps {

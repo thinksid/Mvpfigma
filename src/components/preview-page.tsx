@@ -9,8 +9,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, Dr
 import { Progress } from './ui/progress-simple';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { trackThermometerReportPreviewed, trackThermometerReportUnlocked } from '../utils/analytics';
-import reportMainImage from 'figma:asset/68e8700d46218dcd58aeb2ee0583aac11b87479a.png';
-import unlockButtonImage from 'figma:asset/7c9209bb39cd5c2044a3e3834b9348d12a9dc0be.png';
+import reportMainImage from '../assets/68e8700d46218dcd58aeb2ee0583aac11b87479a.png';
+import unlockButtonImage from '../assets/7c9209bb39cd5c2044a3e3834b9348d12a9dc0be.png';
 
 interface PreviewPageProps {
   data: {
@@ -62,7 +62,7 @@ export function PreviewPage({
 
   // Track page view on mount
   React.useEffect(() => {
-    trackThermometerReportPreviewed(data.scan_id, data.score_total, data.letter);
+    trackThermometerReportPreviewed();
   }, [data.scan_id, data.score_total, data.letter]);
 
   const handleUnlockClick = () => {
@@ -137,7 +137,7 @@ export function PreviewPage({
       // Close modal and navigate to report page
       handleCloseModal();
       onUnlockSuccess(responseData);
-      trackThermometerReportUnlocked(data.scan_id, trimmedEmail);
+      trackThermometerReportUnlocked();
     } catch (error) {
       console.error('Error unlocking report:', error);
       setSubmitError('Failed to unlock report. Please try again.');
