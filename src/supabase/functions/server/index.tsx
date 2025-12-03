@@ -213,8 +213,8 @@ app.post("/make-server-1da61fc8/stripe/create-checkout-session", async (c) => {
     console.log('   - Cancel URL:', cancel_url);
 
     // Use provided URLs or fallback to defaults
-    const finalSuccessUrl = success_url || `${c.req.header('origin') || 'https://oqjgvzaedlwarmyjlsoz.supabase.co'}/diy-download?id=${generation_id}`;
-    const finalCancelUrl = cancel_url || `${c.req.header('origin') || 'https://oqjgvzaedlwarmyjlsoz.supabase.co'}/diy-preview?id=${generation_id}`;
+    const finalSuccessUrl = success_url || `https://thinksid.co/diy-download?id=${generation_id}`;
+    const finalCancelUrl = cancel_url || `https://thinksid.co/diy-preview?id=${generation_id}`;
 
     console.log('   - Final Success URL:', finalSuccessUrl);
     console.log('   - Final Cancel URL:', finalCancelUrl);

@@ -1,13 +1,11 @@
-import image_606061009c53a75486f86348358a6812983190ed from 'figma:asset/606061009c53a75486f86348358a6812983190ed.png';
-import image_606061009c53a75486f86348358a6812983190ed from 'figma:asset/606061009c53a75486f86348358a6812983190ed.png';
-import image_606061009c53a75486f86348358a6812983190ed from 'figma:asset/606061009c53a75486f86348358a6812983190ed.png';
+import image_606061009c53a75486f86348358a6812983190ed from '../assets/606061009c53a75486f86348358a6812983190ed.png';
 import React, { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
 import { Button } from './ui/button-simple';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription, SheetHeader } from './ui/sheet-simple';
 import { VisuallyHidden } from './ui/visually-hidden';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import logo from 'figma:asset/d2305a08b87429395ab71a84cfa59ed81967566b.png';
+import logo from '../assets/d2305a08b87429395ab71a84cfa59ed81967566b.png';
 
 interface NavigationProps {
   onNavigateHome: () => void;

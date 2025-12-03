@@ -1,25 +1,29 @@
-
-  {
+{
       "name": "social.thinksid",
       "version": "0.1.0",
       "private": true,
       "dependencies": {
-          "@jsr/supabase__supabase-js": "^2.49.8",
-          "clsx": "*",
-          "hono": "*",
-          "lucide-react": "*",
-          "react": "^18.3.1",
-          "react-dom": "^18.3.1",
-          "stripe": "^17.4.0",
-          "tailwind-merge": "*"
+            "@jsr/supabase__supabase-js": "^2.49.8",
+            "clsx": "*",
+            "hono": "*",
+            "lucide-react": "*",
+            "react": "^18.3.1",
+            "react-dom": "^18.3.1",
+            "react-router-dom": "^7.10.0",
+            "stripe": "^17.4.0",
+            "tailwind-merge": "*"
       },
       "devDependencies": {
-          "@types/node": "^20.10.0",
-          "@vitejs/plugin-react-swc": "^3.10.2",
-          "vite": "6.3.5"
+            "@types/node": "^20.10.0",
+            "@types/react": "^19.2.7",
+            "@types/react-dom": "^19.2.3",
+            "@vitejs/plugin-react-swc": "^3.10.2",
+            "vite": "6.3.5"
       },
       "scripts": {
-          "dev": "vite",
-          "build": "vite build"
+            "dev": "vite",
+            "build": "vite build",
+            "preview": "vite preview",
+            "vercel-build": "vite build"
       }
-  }
+}

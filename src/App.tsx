@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import './styles/globals.css';
 import { MainLandingPage } from './components/main-landing-page';
 import { LandingPage } from './components/landing-page';
@@ -10,9 +11,18 @@ import { DIYPreview } from './components/diy/DIYPreview';
 import { DIYDownload } from './components/diy/DIYDownload';
 import PricingPage from './components/pricing-page';
 import { DIYProvider } from './contexts/DIYContext';
+import { initGA, trackPageView } from './utils/analytics';
 
-// Step 4: Adding DIY flow and Pricing components
-type Page = 'home' | 'thermometer-landing' | 'thermometer-preview' | 'thermometer-report' | 'diy-landing' | 'diy-create' | 'diy-preview' | 'diy-download' | 'pricing';
+// Analytics wrapper component
+function AnalyticsTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
+
+  return null;
+}
 
 // Sitemap component that renders XML
 function Sitemap() {
@@ -57,122 +67,136 @@ function Sitemap() {
   );
 }
 
+// Navigation wrapper component for consistent navigation props
+function AppContent() {
+  const navigateToHome = () => window.location.href = '/';
+  const navigateToThermometer = () => window.location.href = '/thermometer';
+  const navigateToDIY = () => window.location.href = '/diy';
+  const navigateToPricing = () => window.location.href = '/pricing';
+
+  return (
+    <Routes>
+      <Route path="/" element={
+        <MainLandingPage
+          onNavigateToThermometer={navigateToThermometer}
+          onNavigateToDIY={navigateToDIY}
+          onNavigateToPricing={navigateToPricing}
+        />
+      } />
+
+      <Route path="/thermometer" element={
+        <LandingPage
+          onSuccess={(url) => {
+            // For now, redirect to a placeholder - the actual scan logic would need to be implemented
+            window.location.href = '/thermometer/preview?id=placeholder';
+          }}
+          onNavigateHome={navigateToHome}
+          onNavigateToThermometer={navigateToThermometer}
+          onNavigateToDIY={navigateToDIY}
+          onNavigateToPricing={navigateToPricing}
+        />
+      } />
+
+      <Route path="/thermometer/preview" element={
+        <PreviewPage
+          data={{
+            scan_id: 'placeholder',
+            url: 'placeholder',
+            letter: 'A',
+            score_total: 85,
+            status: 'completed',
+            preview: {
+              top3: ['Placeholder finding 1', 'Placeholder finding 2', 'Placeholder finding 3'],
+              total: 85,
+              letter: 'A',
+              headline: 'Your website shows strong social proof elements'
+            }
+          }}
+          onUnlockSuccess={(data) => {
+            window.location.href = '/thermometer/report?id=placeholder';
+          }}
+          onNavigateHome={navigateToHome}
+          onNavigateToThermometer={navigateToThermometer}
+          onNavigateToDIY={navigateToDIY}
+          onNavigateToPricing={navigateToPricing}
+        />
+      } />
+
+      <Route path="/thermometer/report" element={
+        <ReportPage
+          onNavigateHome={navigateToHome}
+          onNavigateToDIY={navigateToDIY}
+          onNavigateToPricing={navigateToPricing}
+        />
+      } />
+
+      <Route path="/diy" element={
+        <DIYLanding
+          onNavigateHome={navigateToHome}
+          onNavigateToThermometer={navigateToThermometer}
+          onNavigateToPricing={navigateToPricing}
+          onStartDIY={() => window.location.href = '/diy/create'}
+        />
+      } />
+
+      <Route path="/diy/create" element={
+        <DIYCreate
+          onNavigateHome={navigateToHome}
+          onNavigateToThermometer={navigateToThermometer}
+          onNavigateToPricing={navigateToPricing}
+          onNext={() => window.location.href = '/diy/preview'}
+        />
+      } />
+
+      <Route path="/diy/preview" element={
+        <DIYPreview
+          onNavigateHome={navigateToHome}
+          onNavigateToThermometer={navigateToThermometer}
+          onNavigateToPricing={navigateToPricing}
+          onBack={() => window.location.href = '/diy/create'}
+          onNext={() => window.location.href = '/diy/download'}
+        />
+      } />
+
+      <Route path="/diy/download" element={
+        <DIYDownload
+          onNavigateHome={navigateToHome}
+          onNavigateToThermometer={navigateToThermometer}
+          onNavigateToPricing={navigateToPricing}
+        />
+      } />
+
+      <Route path="/pricing" element={
+        <PricingPage
+          onNavigateHome={navigateToHome}
+          onNavigateToThermometer={navigateToThermometer}
+          onNavigateToDIY={navigateToDIY}
+        />
+      } />
+
+      <Route path="/sitemap.xml" element={<Sitemap />} />
+
+      <Route path="*" element={
+        <div className="min-h-screen bg-white p-8">
+          <h1>Page not found</h1>
+        </div>
+      } />
+    </Routes>
+  );
+}
+
 export default function App() {
-  // Check if this is a sitemap request
-  if (window.location.pathname === '/sitemap.xml') {
-    return <Sitemap />;
-  }
+  // Initialize Google Analytics
+  useEffect(() => {
+    initGA();
+  }, []);
 
-  const [currentPage, setCurrentPage] = useState<Page>('home');
-  const [scanId, setScanId] = useState<string | null>(null);
-  
-  console.log('App rendering, current page:', currentPage);
-
-  // Simple placeholder components to test routing
-  const renderPage = () => {
-    console.log('Rendering page:', currentPage);
-    
-    switch (currentPage) {
-      case 'home':
-        return (
-          <MainLandingPage
-            onNavigateToThermometer={() => setCurrentPage('thermometer-landing')}
-            onNavigateToDIY={() => setCurrentPage('diy-landing')}
-            onNavigateToPricing={() => setCurrentPage('pricing')}
-          />
-        );
-      
-      case 'thermometer-landing':
-        return (
-          <LandingPage
-            onNavigateHome={() => setCurrentPage('home')}
-            onNavigateToDIY={() => setCurrentPage('diy-landing')}
-            onNavigateToPricing={() => setCurrentPage('pricing')}
-            onScanComplete={(id) => {
-              setScanId(id);
-              setCurrentPage('thermometer-preview');
-            }}
-          />
-        );
-      
-      case 'thermometer-preview':
-        return (
-          <PreviewPage
-            scanId={scanId}
-            onNavigateHome={() => setCurrentPage('home')}
-            onNavigateToDIY={() => setCurrentPage('diy-landing')}
-            onNavigateToPricing={() => setCurrentPage('pricing')}
-            onEmailSubmit={() => setCurrentPage('thermometer-report')}
-          />
-        );
-      
-      case 'thermometer-report':
-        return (
-          <ReportPage
-            scanId={scanId}
-            onNavigateHome={() => setCurrentPage('home')}
-            onNavigateToDIY={() => setCurrentPage('diy-landing')}
-            onNavigateToPricing={() => setCurrentPage('pricing')}
-          />
-        );
-      
-      case 'diy-landing':
-        return (
-          <DIYLanding
-            onNavigateHome={() => setCurrentPage('home')}
-            onNavigateToThermometer={() => setCurrentPage('thermometer-landing')}
-            onNavigateToPricing={() => setCurrentPage('pricing')}
-            onStartDIY={() => setCurrentPage('diy-create')}
-          />
-        );
-      
-      case 'diy-create':
-        return (
-          <DIYCreate
-            onNavigateHome={() => setCurrentPage('home')}
-            onNavigateToThermometer={() => setCurrentPage('thermometer-landing')}
-            onNavigateToPricing={() => setCurrentPage('pricing')}
-            onNext={() => setCurrentPage('diy-preview')}
-          />
-        );
-      
-      case 'diy-preview':
-        return (
-          <DIYPreview
-            onNavigateHome={() => setCurrentPage('home')}
-            onNavigateToThermometer={() => setCurrentPage('thermometer-landing')}
-            onNavigateToPricing={() => setCurrentPage('pricing')}
-            onBack={() => setCurrentPage('diy-create')}
-            onNext={() => setCurrentPage('diy-download')}
-          />
-        );
-      
-      case 'diy-download':
-        return (
-          <DIYDownload
-            onNavigateHome={() => setCurrentPage('home')}
-            onNavigateToThermometer={() => setCurrentPage('thermometer-landing')}
-            onNavigateToPricing={() => setCurrentPage('pricing')}
-          />
-        );
-      
-      case 'pricing':
-        return (
-          <PricingPage
-            onNavigateHome={() => setCurrentPage('home')}
-            onNavigateToThermometer={() => setCurrentPage('thermometer-landing')}
-            onNavigateToDIY={() => setCurrentPage('diy-landing')}
-          />
-        );
-      
-      default:
-        return (
-          <div className="min-h-screen bg-white p-8">
-            <h1>Page not found</h1>
-          </div>
-        );
-    }
-  };
-
-  return <DIYProvider>{renderPage()}</DIYProvider>;
+  return (
+    <Router>
+      <AnalyticsTracker />
+      <DIYProvider>
+        <AppContent />
+      </DIYProvider>
+    </Router>
+  );
 }
